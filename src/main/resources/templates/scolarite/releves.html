@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Relevés PDF')}"></head>
+<body>
+
+<div class="app-container">
+    <div th:replace="~{fragments :: sidebar('releves', 'ROLE_SCOLARITE')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_SCOLARITE')}"></div>
+
+        <div class="content-wrapper animated-fade-in">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3">Génération de Relevés</h5>
+
+                <form method="get" th:action="@{/scolarite/releves}" class="row g-2 align-items-end mb-4">
+                    <div class="col-md-3">
+                        <label class="small text-muted">Promotion</label>
+                        <select name="niveau" class="form-select form-select-sm">
+                            <option value="">Toutes</option>
+                            <option value="L1" th:selected="${niveau == 'L1'}">L1</option>
+                            <option value="L2" th:selected="${niveau == 'L2'}">L2</option>
+                            <option value="L3" th:selected="${niveau == 'L3'}">L3</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small text-muted">Année universitaire</label>
+                        <select name="anneeId" class="form-select form-select-sm">
+                            <option value="">Toutes</option>
+                            <option th:each="a : ${annees}" th:value="${a.id}" th:text="${a.libelle}" th:selected="${anneeId != null and a.id == anneeId}">Année</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary-custom btn-sm">Filtrer</button>
+                    </div>
+                </form>
+
+                <div class="table-custom-wrapper">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Matricule</th>
+                                <th>Étudiant</th>
+                                <th>Promotion</th>
+                                <th>Semestre</th>
+                                <th>Année</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ins : ${inscriptions}">
+                                <td th:text="${ins.etudiant.matricule}">C00000</td>
+                                <td th:text="${ins.etudiant.utilisateur.prenom} + ' ' + ${ins.etudiant.utilisateur.nom}">Nom</td>
+                                <td th:text="${ins.etudiant.niveau}">L1</td>
+                                <td th:text="${ins.semestre.code}">S1</td>
+                                <td th:text="${ins.anneeUniversitaire.libelle}">Année</td>
+                                <td class="d-flex gap-1">
+                                    <a th:href="@{/scolarite/releves/imprimer/{id}(id=${ins.id})}" class="btn btn-sm btn-outline-dark" target="_blank">
+                                        <i class="fa-solid fa-print"></i> Imprimer
+                                    </a>
+                                    <a th:href="@{/scolarite/releves/pdf/{id}(id=${ins.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fa-solid fa-file-pdf"></i> PDF
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(inscriptions)}">
+                                <td colspan="6" class="text-center text-muted py-3">Aucune inscription disponible.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+</body>
+</html>

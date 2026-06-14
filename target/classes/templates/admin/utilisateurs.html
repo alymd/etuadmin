@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Gestion des Utilisateurs')}"></head>
+<body>
+
+<div class="app-container">
+    <div th:replace="~{fragments :: sidebar('utilisateurs', 'ROLE_ADMIN')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ADMIN')}"></div>
+
+        <div class="content-wrapper animated-fade-in">
+            <!-- Messages de succès/erreur -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <span th:text="${success}">Succès !</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <span th:text="${error}">Erreur !</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="row g-4">
+                <!-- Tableau des utilisateurs -->
+                <div class="col-lg-8">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-3">Liste des Utilisateurs</h5>
+                        <div class="table-custom-wrapper">
+                            <table class="table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Identifiant</th>
+                                        <th>Nom Complet</th>
+                                        <th>E-mail</th>
+                                        <th>Rôle</th>
+                                        <th>Statut</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="user : ${utilisateurs}">
+                                        <td class="fw-semibold" th:text="${user.username}">Username</td>
+                                        <td th:text="${user.prenom} + ' ' + ${user.nom}">Nom</td>
+                                        <td th:text="${user.email}">Email</td>
+                                        <td>
+                                            <span class="badge bg-secondary badge-custom" th:text="${user.role}">Role</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-custom" 
+                                                  th:classappend="${user.actif ? 'bg-success' : 'bg-danger'}" 
+                                                  th:text="${user.actif ? 'Actif' : 'Désactivé'}">Statut</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-dark me-1" 
+                                                    th:data-user-id="${user.id}"
+                                                    th:data-user-username="${user.username}"
+                                                    th:data-user-nom="${user.nom}"
+                                                    th:data-user-prenom="${user.prenom}"
+                                                    th:data-user-email="${user.email}"
+                                                    th:data-user-role="${user.role}"
+                                                    th:data-user-actif="${user.actif}"
+                                                    onclick="const btn = event.target.closest('button'); chargerUserForEdit(btn.dataset.userId, btn.dataset.userUsername, btn.dataset.userNom, btn.dataset.userPrenom, btn.dataset.userEmail, btn.dataset.userRole, btn.dataset.userActif === 'true')" 
+                                                    style="border-radius: 6px;"><i class="fa-solid fa-edit"></i></button>
+                                            <a th:href="@{/admin/utilisateurs/toggle/{id}(id=${user.id})}" 
+                                               class="btn btn-sm" 
+                                               th:classappend="${user.actif ? 'btn-outline-danger' : 'btn-outline-success'}" 
+                                               style="border-radius: 6px;">
+                                                <i class="fa-solid" th:classappend="${user.actif ? 'fa-ban' : 'fa-check'}"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulaire de création/édition -->
+                <div class="col-lg-4">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-3" id="form-title">Créer un Utilisateur</h5>
+                        <form th:action="@{/admin/utilisateurs/sauver}" method="post" th:object="${nouveauUser}">
+                            <input type="hidden" id="edit-id" name="id">
+                            
+                            <div class="form-group-custom">
+                                <label for="usernameInput">Identifiant / Matricule</label>
+                                <input type="text" id="usernameInput" name="username" class="form-control-custom" placeholder="Ex: C10234, admin, scol..." required>
+                            </div>
+                            
+                            <div class="form-group-custom" id="password-group">
+                                <label for="passwordInput">Mot de passe</label>
+                                <input type="password" id="passwordInput" name="password" class="form-control-custom" placeholder="Mot de passe">
+                                <small class="text-muted small">Par défaut, égal à l'identifiant pour les nouveaux étudiants.</small>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label for="nomInput">Nom</label>
+                                <input type="text" id="nomInput" name="nom" class="form-control-custom" required>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label for="prenomInput">Prénom</label>
+                                <input type="text" id="prenomInput" name="prenom" class="form-control-custom" required>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label for="emailInput">Adresse E-mail</label>
+                                <input type="email" id="emailInput" name="email" class="form-control-custom" required>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label for="roleInput">Rôle</label>
+                                <select id="roleInput" name="role" class="form-control-custom" required>
+                                    <option th:each="r : ${roles}" th:value="${r}" th:text="${r == T(com.eduadmin.model.Role).ROLE_ADMIN ? 'Administrateur' : (r == T(com.eduadmin.model.Role).ROLE_SCOLARITE ? 'Scolarité' : 'Étudiant')}">Role</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group-custom d-flex align-items-center gap-2 mt-3">
+                                <input type="checkbox" id="actifInput" name="actif" checked style="width: 18px; height: 18px;">
+                                <label for="actifInput" class="mb-0">Compte Actif</label>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary-custom w-100">Enregistrer</button>
+                                <button type="button" class="btn btn-outline-secondary w-100" onclick="annulerEdit()" style="border-radius: 8px;">Annuler</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+<script>
+    function chargerUserForEdit(id, username, nom, prenom, email, role, actif) {
+        document.getElementById('form-title').innerText = "Modifier l'Utilisateur";
+        document.getElementById('edit-id').value = id;
+        
+        const usernameInput = document.getElementById('usernameInput');
+        usernameInput.value = username;
+        usernameInput.readOnly = true; // Empêcher l'édition de l'identifiant
+        
+        document.getElementById('nomInput').value = nom;
+        document.getElementById('prenomInput').value = prenom;
+        document.getElementById('emailInput').value = email;
+        document.getElementById('roleInput').value = role;
+        document.getElementById('actifInput').checked = actif;
+        
+        // Cacher le groupe mot de passe lors de la modification (hachage existant gardé)
+        document.getElementById('password-group').style.display = 'none';
+        document.getElementById('passwordInput').removeAttribute('required');
+    }
+
+    function annulerEdit() {
+        document.getElementById('form-title').innerText = "Créer un Utilisateur";
+        document.getElementById('edit-id').value = "";
+        
+        const usernameInput = document.getElementById('usernameInput');
+        usernameInput.value = "";
+        usernameInput.readOnly = false;
+        
+        document.getElementById('nomInput').value = "";
+        document.getElementById('prenomInput').value = "";
+        document.getElementById('emailInput').value = "";
+        document.getElementById('roleInput').selectedIndex = 0;
+        document.getElementById('actifInput').checked = true;
+        
+        document.getElementById('password-group').style.display = 'block';
+    }
+</script>
+</body>
+</html>

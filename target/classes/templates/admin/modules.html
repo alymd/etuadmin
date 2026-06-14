@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Modules & Cours')}"></head>
+<body>
+
+<div class="app-container">
+    <div th:replace="~{fragments :: sidebar('modules', 'ROLE_ADMIN')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ADMIN')}"></div>
+
+        <div class="content-wrapper animated-fade-in">
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <span th:text="${success}">Succès !</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <span th:text="${error}">Erreur !</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Double Grid Layout -->
+            <div class="row g-4 mb-4">
+                <!-- Section Modules -->
+                <div class="col-lg-6">
+                    <div class="glass-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Modules d'Enseignement</h5>
+                            <button type="button" class="btn btn-primary-custom btn-sm" onclick="ouvrirModuleModal()" data-bs-toggle="modal" data-bs-target="#moduleModal">
+                                <i class="fa-solid fa-plus"></i> Nouveau Module
+                            </button>
+                        </div>
+
+                        <div class="table-custom-wrapper">
+                            <table class="table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Libellé</th>
+                                        <th>Semestre</th>
+                                        <th>Filière</th>
+                                        <th>Crédits</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="m : ${modules}">
+                                        <td class="fw-bold text-dark" th:text="${m.code}">Code</td>
+                                        <td th:text="${m.nom}">Nom</td>
+                                        <td>
+                                            <span class="badge bg-secondary badge-custom" th:text="${m.semestre.code}">Semestre</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary badge-custom" th:text="${m.filiere != null ? m.filiere.code : 'Generale'}">Filière</span>
+                                        </td>
+                                        <td class="fw-bold" th:text="${m.creditsCalculated}">0</td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-dark me-1"
+                                                    th:data-module-id="${m.id}"
+                                                    th:data-module-code="${m.code}"
+                                                    th:data-module-nom="${m.nom}"
+                                                    th:data-semestre-id="${m.semestre.id}"
+                                                    th:data-filiere-id="${m.filiere != null ? m.filiere.id : ''}"
+                                                    onclick="chargerModule(this)"
+                                                    data-bs-toggle="modal" data-bs-target="#moduleModal"
+                                                    style="border-radius: 6px;">
+                                                <i class="fa-solid fa-edit"></i>
+                                            </button>
+                                            <a th:href="@{/admin/modules/supprimer/{id}(id=${m.id})}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               th:attr="onclick=|return confirm('Supprimer le module ${m.code} et toutes ses matieres ?');|"
+                                               style="border-radius: 6px;">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Matières -->
+                <div class="col-lg-6">
+                    <div class="glass-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Matières & Cours</h5>
+                            <button type="button" class="btn btn-primary-custom btn-sm" onclick="ouvrirMatiereModal()" data-bs-toggle="modal" data-bs-target="#matiereModal" style="background-color: var(--success); border: none;">
+                                <i class="fa-solid fa-plus"></i> Nouvelle Matière
+                            </button>
+                        </div>
+
+                        <div class="table-custom-wrapper">
+                            <table class="table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Nom</th>
+                                        <th>Coeff</th>
+                                        <th>ECTS</th>
+                                        <th>TP</th>
+                                        <th>Module</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="mat : ${matieres}">
+                                        <td class="fw-bold text-primary" th:text="${mat.code}">Code</td>
+                                        <td th:text="${mat.nom}">Matière</td>
+                                        <td th:text="${mat.coefficient}">Coeff</td>
+                                        <td th:text="${mat.credits}">Crédits</td>
+                                        <td>
+                                            <span class="badge bg-info badge-custom" th:if="${mat.presenceTP}">Avec TP</span>
+                                            <span class="badge bg-light text-muted badge-custom" th:unless="${mat.presenceTP}">Sans TP</span>
+                                        </td>
+                                        <td class="small text-muted" th:text="${mat.module.code}">Module</td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-dark me-1"
+                                                    th:data-matiere-id="${mat.id}"
+                                                    th:data-matiere-code="${mat.code}"
+                                                    th:data-matiere-nom="${mat.nom}"
+                                                    th:data-matiere-coeff="${mat.coefficient}"
+                                                    th:data-matiere-credits="${mat.credits}"
+                                                    th:data-module-id="${mat.module.id}"
+                                                    th:data-matiere-desc="${mat.description != null ? mat.description : ''}"
+                                                    th:data-matiere-tp="${mat.presenceTP}"
+                                                    onclick="chargerMatiere(this)"
+                                                    data-bs-toggle="modal" data-bs-target="#matiereModal"
+                                                    style="border-radius: 6px;">
+                                                <i class="fa-solid fa-edit"></i>
+                                            </button>
+                                            <a th:href="@{/admin/matieres/supprimer/{id}(id=${mat.id})}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               th:attr="onclick=|return confirm('Supprimer la matiere ${mat.code} ?');|"
+                                               style="border-radius: 6px;">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL MODULE -->
+<div class="modal fade" id="moduleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: var(--radius);">
+            <div class="modal-header">
+                <h5 class="fw-bold" id="moduleModalTitle">Creer un Nouveau Module</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/admin/modules/sauver}" method="post" th:object="${nouveauModule}">
+                <input type="hidden" id="module_id" th:field="*{id}">
+                <div class="modal-body">
+                    <div class="form-group-custom">
+                        <label for="m_code">Code Unique</label>
+                        <input type="text" id="m_code" th:field="*{code}" class="form-control-custom" required>
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="m_nom">Libelle du Module</label>
+                        <input type="text" id="m_nom" th:field="*{nom}" class="form-control-custom" required>
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="m_semestre">Semestre Rattache</label>
+                        <select id="m_semestre" name="semestre" class="form-control-custom" required>
+                            <option value="">Selectionner un semestre...</option>
+                            <option th:each="s : ${semestres}" th:value="${s.id}" th:text="${s.code} + ' (' + ${s.anneeUniversitaire.libelle} + ')'">Semestre</option>
+                        </select>
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="m_filiere">Filiere Rattachee (optionnel)</label>
+                        <select id="m_filiere" name="filiere" class="form-control-custom">
+                            <option value="">Generale (toutes filieres)</option>
+                            <option th:each="f : ${filieres}" th:value="${f.id}" th:text="${f.code} + ' - ' + ${f.nom}">Filiere</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-primary-custom" id="moduleSubmitBtn">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL MATIERE -->
+<div class="modal fade" id="matiereModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: var(--radius);">
+            <div class="modal-header">
+                <h5 class="fw-bold" id="matiereModalTitle">Creer une Nouvelle Matiere</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/admin/matieres/sauver}" method="post" th:object="${nouvelleMatiere}">
+                <input type="hidden" id="matiere_id" th:field="*{id}">
+                <div class="modal-body">
+                    <div class="form-group-custom">
+                        <label for="mat_code">Code de la Matiere</label>
+                        <input type="text" id="mat_code" th:field="*{code}" class="form-control-custom" required>
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="mat_nom">Nom complet</label>
+                        <input type="text" id="mat_nom" th:field="*{nom}" class="form-control-custom" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 form-group-custom">
+                            <label for="mat_coeff">Coefficient</label>
+                            <input type="number" step="0.1" id="mat_coeff" th:field="*{coefficient}" class="form-control-custom" min="0.5" max="10.0" required>
+                        </div>
+                        <div class="col-md-6 form-group-custom">
+                            <label for="mat_credits">Credits ECTS</label>
+                            <input type="number" id="mat_credits" th:field="*{credits}" class="form-control-custom" min="1" max="30" required>
+                        </div>
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="mat_module">Module Rattache</label>
+                        <select id="mat_module" name="module" class="form-control-custom" required>
+                            <option value="">Selectionner un module...</option>
+                            <option th:each="m : ${modules}" th:value="${m.id}" th:text="${m.code} + ' - ' + ${m.nom}">Module</option>
+                        </select>
+                    </div>
+                    <div class="form-group-custom">
+                        <label for="mat_desc">Description (Optionnel)</label>
+                        <input type="text" id="mat_desc" th:field="*{description}" class="form-control-custom">
+                    </div>
+                    <div class="form-group-custom d-flex align-items-center gap-2 mt-3">
+                        <input type="checkbox" id="mat_tp" th:field="*{presenceTP}" style="width: 18px; height: 18px;">
+                        <label for="mat_tp" class="mb-0">Cette matiere comporte des seances de TP</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-success" id="matiereSubmitBtn" style="border-radius: 8px;">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+<script>
+    function ouvrirModuleModal() {
+        document.getElementById('moduleModalTitle').innerText = 'Creer un Nouveau Module';
+        document.getElementById('module_id').value = '';
+        document.getElementById('m_code').value = '';
+        document.getElementById('m_nom').value = '';
+        document.getElementById('m_semestre').value = '';
+        document.getElementById('m_filiere').value = '';
+    }
+
+    function chargerModule(btn) {
+        document.getElementById('moduleModalTitle').innerText = 'Modifier le Module';
+        document.getElementById('module_id').value = btn.dataset.moduleId;
+        document.getElementById('m_code').value = btn.dataset.moduleCode;
+        document.getElementById('m_nom').value = btn.dataset.moduleNom;
+        document.getElementById('m_semestre').value = btn.dataset.semestreId;
+        document.getElementById('m_filiere').value = btn.dataset.filiereId || '';
+    }
+
+    function ouvrirMatiereModal() {
+        document.getElementById('matiereModalTitle').innerText = 'Creer une Nouvelle Matiere';
+        document.getElementById('matiere_id').value = '';
+        document.getElementById('mat_code').value = '';
+        document.getElementById('mat_nom').value = '';
+        document.getElementById('mat_coeff').value = '';
+        document.getElementById('mat_credits').value = '';
+        document.getElementById('mat_module').value = '';
+        document.getElementById('mat_desc').value = '';
+        document.getElementById('mat_tp').checked = false;
+    }
+
+    function chargerMatiere(btn) {
+        document.getElementById('matiereModalTitle').innerText = 'Modifier la Matiere';
+        document.getElementById('matiere_id').value = btn.dataset.matiereId;
+        document.getElementById('mat_code').value = btn.dataset.matiereCode;
+        document.getElementById('mat_nom').value = btn.dataset.matiereNom;
+        document.getElementById('mat_coeff').value = btn.dataset.matiereCoeff;
+        document.getElementById('mat_credits').value = btn.dataset.matiereCredits;
+        document.getElementById('mat_module').value = btn.dataset.moduleId;
+        document.getElementById('mat_desc').value = btn.dataset.matiereDesc || '';
+        document.getElementById('mat_tp').checked = btn.dataset.matiereTp === 'true';
+    }
+</script>
+</body>
+</html>

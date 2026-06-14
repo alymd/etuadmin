@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Espace Étudiant')}"></head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments :: sidebar('dashboard', 'ROLE_ETUDIANT')}"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Navbar -->
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ETUDIANT')}"></div>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper animated-fade-in">
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="fw-bold mb-1" th:text="'Bienvenue, ' + ${etudiant.utilisateur.prenom} + ' ' + ${etudiant.utilisateur.nom}">Bonjour, Étudiant</h2>
+                <p class="text-muted" th:text="'Matricule : ' + ${etudiant.matricule} + ' | Niveau Actuel : ' + ${etudiant.niveau} + ' | Filière : ' + ${etudiant.filiereActuelle != null ? etudiant.filiereActuelle.nom : 'Non orienté'}">Infos étudiant</p>
+            </div>
+
+            <!-- Notifications / Alertes -->
+            <div class="alert alert-info border-0 shadow-sm mb-4" th:each="notif : ${notifications}" style="border-radius: var(--radius);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-bell text-primary"></i>
+                        <div>
+                            <strong th:text="${notif.titre}">Alerte</strong> - <span th:text="${notif.message}">Message</span>
+                        </div>
+                    </div>
+                    <a th:href="@{/etudiant/notifications/marquer-lue/{id}(id=${notif.id})}" class="btn btn-sm btn-link text-decoration-none">Marquer comme lu</a>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Moyenne Générale</span>
+                            <h3 class="fw-bold mt-1 mb-0 text-primary" th:text="${moyenneGenerale} + ' / 20'">0.00 / 20</h3>
+                        </div>
+                        <div class="bg-primary text-white rounded p-3">
+                            <i class="fa-solid fa-chart-simple fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Crédits ECTS Cumulés</span>
+                            <h3 class="fw-bold mt-1 mb-0 text-success" th:text="${totalCredits} + ' / 180'">0 / 180</h3>
+                        </div>
+                        <div class="bg-success text-white rounded p-3" style="background-color: var(--success) !important;">
+                            <i class="fa-solid fa-graduation-cap fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Orientation L2</span>
+                            <h3 class="fw-bold mt-1 mb-0 text-warning" th:text="${etudiant.niveau == 'L1' ? 'Voeux à soumettre' : 'Terminée'}">Statut</h3>
+                        </div>
+                        <div class="bg-warning text-white rounded p-3">
+                            <i class="fa-solid fa-compass fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Annonces Universitaires -->
+                <div class="col-lg-8">
+                    <div class="glass-card p-4 h-100">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-bullhorn text-primary me-2"></i>Annonces Académiques</h5>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-0 py-3" th:each="annonce : ${annonces}">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <h6 class="fw-bold mb-1 text-dark" th:text="${annonce.titre}">Titre de l'annonce</h6>
+                                    <small class="text-muted" th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy')}">Date</small>
+                                </div>
+                                <p class="text-muted small mb-0 mt-2" th:text="${annonce.contenu}">Contenu de l'annonce...</p>
+                            </div>
+                            <div class="text-center text-muted py-3" th:if="${#lists.isEmpty(annonces)}">
+                                Aucune annonce publiée récemment.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shortcuts panel -->
+                <div class="col-lg-4">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-3">Accès Rapide</h5>
+                        <div class="d-grid gap-2">
+                            <a href="/etudiant/notes" class="btn btn-outline-primary text-start d-flex align-items-center gap-2" style="border-radius: 8px; padding: 0.6rem 1rem;">
+                                <i class="fa-solid fa-file-signature"></i> Consulter mes Notes
+                            </a>
+                            <a href="/etudiant/choix" class="btn btn-outline-primary text-start d-flex align-items-center gap-2" style="border-radius: 8px; padding: 0.6rem 1rem;" th:if="${etudiant.niveau == 'L1'}">
+                                <i class="fa-solid fa-compass"></i> Orientation Filière
+                            </a>
+                            <a href="/etudiant/reclamations" class="btn btn-outline-primary text-start d-flex align-items-center gap-2" style="border-radius: 8px; padding: 0.6rem 1rem;">
+                                <i class="fa-solid fa-circle-question"></i> Déposer une Réclamation
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+</body>
+</html>

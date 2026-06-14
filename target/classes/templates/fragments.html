@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- En-tête Commun -->
+<head th:fragment="header(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - EduAdmin'">EduAdmin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/style.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<!-- Barre Latérale -->
+<div th:fragment="sidebar(activePage, role)" class="sidebar">
+    <a href="/dashboard" class="brand">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>EduAdmin</span>
+    </a>
+    
+    <ul class="sidebar-menu">
+        <!-- Rôle ADMIN -->
+        <th:block th:if="${role == 'ROLE_ADMIN'}">
+            <li th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
+                <a href="/dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            </li>
+            <li th:classappend="${activePage == 'utilisateurs' ? 'active' : ''}">
+                <a href="/admin/utilisateurs"><i class="fa-solid fa-users-gear"></i> Utilisateurs</a>
+            </li>
+            <li th:classappend="${activePage == 'etudiants' ? 'active' : ''}">
+                <a href="/admin/etudiants"><i class="fa-solid fa-user-graduate"></i> Étudiants</a>
+            </li>
+            <li th:classappend="${activePage == 'promo-l1' ? 'active' : ''}">
+                <a href="/admin/etudiants?niveau=L1"><i class="fa-solid fa-layer-group"></i> Promotion L1</a>
+            </li>
+            <li th:classappend="${activePage == 'promo-l2' ? 'active' : ''}">
+                <a href="/admin/etudiants?niveau=L2"><i class="fa-solid fa-layer-group"></i> Promotion L2</a>
+            </li>
+            <li th:classappend="${activePage == 'promo-l3' ? 'active' : ''}">
+                <a href="/admin/etudiants?niveau=L3"><i class="fa-solid fa-layer-group"></i> Promotion L3</a>
+            </li>
+            <li th:classappend="${activePage == 'filieres' ? 'active' : ''}">
+                <a href="/admin/filieres"><i class="fa-solid fa-network-wired"></i> Filières</a>
+            </li>
+            <li th:classappend="${activePage == 'modules' ? 'active' : ''}">
+                <a href="/admin/modules"><i class="fa-solid fa-book-open"></i> Modules & Cours</a>
+            </li>
+            <li th:classappend="${activePage == 'orientation' ? 'active' : ''}">
+                <a href="/admin/orientation"><i class="fa-solid fa-arrows-split-up-and-left"></i> Orientation L2</a>
+            </li>
+            <li th:classappend="${activePage == 'journal' ? 'active' : ''}">
+                <a href="/admin/journal"><i class="fa-solid fa-receipt"></i> Journal d'Audit</a>
+            </li>
+        </th:block>
+
+        <!-- Rôle SCOLARITE -->
+        <th:block th:if="${role == 'ROLE_SCOLARITE'}">
+            <li th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
+                <a href="/dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            </li>
+            <li th:classappend="${activePage == 'etudiants' ? 'active' : ''}">
+                <a href="/scolarite/etudiants"><i class="fa-solid fa-user-graduate"></i> Étudiants</a>
+            </li>
+            <li th:classappend="${activePage == 'promo-l1' ? 'active' : ''}">
+                <a href="/scolarite/etudiants?niveau=L1"><i class="fa-solid fa-layer-group"></i> Promotion L1</a>
+            </li>
+            <li th:classappend="${activePage == 'promo-l2' ? 'active' : ''}">
+                <a href="/scolarite/etudiants?niveau=L2"><i class="fa-solid fa-layer-group"></i> Promotion L2</a>
+            </li>
+            <li th:classappend="${activePage == 'promo-l3' ? 'active' : ''}">
+                <a href="/scolarite/etudiants?niveau=L3"><i class="fa-solid fa-layer-group"></i> Promotion L3</a>
+            </li>
+            <li th:classappend="${activePage == 'inscriptions' ? 'active' : ''}">
+                <a href="/scolarite/inscriptions"><i class="fa-solid fa-signature"></i> Inscriptions</a>
+            </li>
+            <li th:classappend="${activePage == 'notes' ? 'active' : ''}">
+                <a href="/scolarite/notes"><i class="fa-solid fa-pen-to-square"></i> Saisie des Notes</a>
+            </li>
+            <li th:classappend="${activePage == 'reclamations' ? 'active' : ''}">
+                <a href="/scolarite/reclamations"><i class="fa-solid fa-circle-exclamation"></i> Réclamations</a>
+            </li>
+            <li th:classappend="${activePage == 'releves' ? 'active' : ''}">
+                <a href="/scolarite/releves"><i class="fa-solid fa-file-invoice"></i> Bulletins & Relevés</a>
+            </li>
+            <li th:classappend="${activePage == 'statistiques' ? 'active' : ''}">
+                <a href="/scolarite/statistiques"><i class="fa-solid fa-ranking-star"></i> Statistiques</a>
+            </li>
+        </th:block>
+
+        <!-- Rôle ETUDIANT -->
+        <th:block th:if="${role == 'ROLE_ETUDIANT'}">
+            <li th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
+                <a href="/dashboard"><i class="fa-solid fa-home"></i> Accueil</a>
+            </li>
+            <li th:classappend="${activePage == 'profil' ? 'active' : ''}">
+                <a href="/etudiant/profil"><i class="fa-solid fa-user"></i> Mon Profil</a>
+            </li>
+            <li th:classappend="${activePage == 'notes' ? 'active' : ''}">
+                <a href="/etudiant/notes"><i class="fa-solid fa-file-signature"></i> Mes Notes</a>
+            </li>
+            <li th:classappend="${activePage == 'choix' ? 'active' : ''}">
+                <a href="/etudiant/choix"><i class="fa-solid fa-compass"></i> Choix d'Orientation</a>
+            </li>
+            <li th:classappend="${activePage == 'reclamations' ? 'active' : ''}">
+                <a href="/etudiant/reclamations"><i class="fa-solid fa-circle-question"></i> Réclamations</a>
+            </li>
+        </th:block>
+    </ul>
+
+    <!-- Bouton Déconnexion en bas -->
+    <div class="mt-auto">
+        <hr style="background-color: #475569;">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2" style="border-radius: 8px;">
+                <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Barre Supérieure -->
+<div th:fragment="navbar(username, role)" class="navbar-custom">
+    <div class="d-flex align-items-center gap-2">
+        <h4 class="mb-0 font-weight-bold text-dark">Espace Institutionnel</h4>
+        <span class="badge bg-secondary badge-custom" th:text="${role == 'ROLE_ADMIN' ? 'Administrateur' : (role == 'ROLE_SCOLARITE' ? 'Scolarité' : 'Étudiant')}">Rôle</span>
+    </div>
+    
+    <div class="user-profile">
+        <div class="text-end me-2">
+            <div class="fw-semibold text-dark" th:text="${username}">username</div>
+            <small class="text-muted" th:text="${role}"></small>
+        </div>
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-weight: 600;">
+            <i class="fa-solid fa-user-shield" th:if="${role == 'ROLE_ADMIN'}"></i>
+            <i class="fa-solid fa-user-tie" th:if="${role == 'ROLE_SCOLARITE'}"></i>
+            <i class="fa-solid fa-user-graduate" th:if="${role == 'ROLE_ETUDIANT'}"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts Communs -->
+<div th:fragment="footer()">
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+
+<!-- Formulaire de recherche étudiants -->
+<div th:fragment="recherche-etudiants(actionUrl)" class="glass-card p-3 mb-4">
+    <form th:action="${actionUrl}" method="get" class="row g-2 align-items-end">
+        <div class="col-md-2">
+            <label class="small text-muted">Nom / Prénom</label>
+            <input type="text" name="nom" class="form-control form-control-sm" th:value="${nom}" placeholder="Nom...">
+        </div>
+        <div class="col-md-2">
+            <label class="small text-muted">Matricule</label>
+            <input type="text" name="matricule" class="form-control form-control-sm" th:value="${matricule}" placeholder="C00001...">
+        </div>
+        <div class="col-md-2">
+            <label class="small text-muted">Filière</label>
+            <select name="filiereId" class="form-select form-select-sm">
+                <option value="">Toutes</option>
+                <option th:each="f : ${filieres}" th:value="${f.id}" th:text="${f.code}" th:selected="${filiereId != null and f.id == filiereId}">Filière</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="small text-muted">Promotion</label>
+            <select name="niveau" class="form-select form-select-sm">
+                <option value="">Toutes</option>
+                <option value="L1" th:selected="${niveau == 'L1'}">L1</option>
+                <option value="L2" th:selected="${niveau == 'L2'}">L2</option>
+                <option value="L3" th:selected="${niveau == 'L3'}">L3</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="small text-muted">Année universitaire</label>
+            <select name="anneeId" class="form-select form-select-sm">
+                <option value="">Toutes</option>
+                <option th:each="a : ${annees}" th:value="${a.id}" th:text="${a.libelle}" th:selected="${anneeId != null and a.id == anneeId}">Année</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-1">
+            <button type="submit" class="btn btn-primary-custom btn-sm flex-grow-1"><i class="fa-solid fa-search"></i> Rechercher</button>
+            <a th:href="${actionUrl}" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+    </form>
+</div>
+</html>

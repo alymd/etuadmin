@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Mes Réclamations')}"></head>
+<body>
+
+<div class="app-container">
+    <div th:replace="~{fragments :: sidebar('dashboard', 'ROLE_ETUDIANT')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ETUDIANT')}"></div>
+
+        <div class="content-wrapper animated-fade-in">
+            <div class="glass-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-1">Déposer une réclamation</h5>
+                        <p class="text-muted small mb-0">Soumettez une réclamation pour une note ou un examen.</p>
+                    </div>
+                </div>
+
+                <form th:action="@{/etudiant/reclamations/sauver}" method="post" enctype="multipart/form-data" th:object="${reclamationForm}">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6 form-group-custom">
+                            <label for="matiereId">Matière</label>
+                            <select id="matiereId" name="matiereId" class="form-control-custom" required>
+                                <option value="">Sélectionner une matière...</option>
+                                <option th:each="matiere : ${matieres}" th:value="${matiere.id}" th:text="${matiere.code} + ' - ' + ${matiere.nom}">Matière</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group-custom">
+                            <label for="noteConcernee">Note concernée</label>
+                            <input id="noteConcernee" type="text" name="noteConcernee" class="form-control-custom" placeholder="Ex: CC, Exam" required>
+                        </div>
+                        <div class="col-12 form-group-custom">
+                            <label for="objet">Objet</label>
+                            <input id="objet" type="text" name="objet" class="form-control-custom" placeholder="Objet de la reclamation" required>
+                        </div>
+                        <div class="col-12 form-group-custom">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" class="form-control-custom" rows="4" placeholder="Décrivez votre réclamation" required></textarea>
+                        </div>
+                        <div class="col-12 form-group-custom">
+                            <label for="pieceJointe">Pièce jointe (facultatif)</label>
+                            <input id="pieceJointe" type="file" name="pieceJointe" class="form-control-custom">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom">Envoyer la réclamation</button>
+                </form>
+            </div>
+
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3">Historique des réclamations</h5>
+                <div class="table-custom-wrapper">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Matière</th>
+                                <th>Objet</th>
+                                <th>Statut</th>
+                                <th>Détails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="rec : ${reclamations}">
+                                <td th:text="${#temporals.format(rec.dateCreation, 'dd/MM/yyyy')}">Date</td>
+                                <td th:text="${rec.matiere.code} + ' - ' + ${rec.matiere.nom}">Matière</td>
+                                <td th:text="${rec.objet}">Objet</td>
+                                <td th:text="${rec.statut}">Statut</td>
+                                <td th:text="${rec.description}">Description</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(reclamations)}">
+                                <td colspan="5" class="text-center text-muted py-3">Aucune réclamation déposée pour le moment.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Profil Étudiant')}"></head>
+<body>
+
+<div class="app-container">
+    <div th:replace="~{fragments :: sidebar('dashboard', 'ROLE_ETUDIANT')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ETUDIANT')}"></div>
+
+        <div class="content-wrapper animated-fade-in">
+            <div class="mb-4">
+                <h2 class="fw-bold mb-1" th:text="${etudiant.utilisateur.prenom} + ' ' + ${etudiant.utilisateur.nom}">Nom Prénom</h2>
+                <p class="text-muted" th:text="${etudiant.matricule} + ' • ' + ${etudiant.niveau} + ' • ' + (${etudiant.filiereActuelle} != null ? etudiant.filiereActuelle.nom : 'Non orienté')">Matricule et statut</p>
+            </div>
+
+            <div class="glass-card p-4 mb-4">
+                <h5 class="fw-bold mb-3">Informations personnelles</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label>Matricule</label>
+                            <p class="form-control-custom mb-0" th:text="${etudiant.matricule}">CXXXXX</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label>Niveau</label>
+                            <p class="form-control-custom mb-0" th:text="${etudiant.niveau}">L1</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label>Date de naissance</label>
+                            <p class="form-control-custom mb-0" th:text="${#temporals.format(etudiant.dateNaissance, 'dd/MM/yyyy')}">01/01/2000</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label>Filière actuelle</label>
+                            <p class="form-control-custom mb-0" th:text="${etudiant.filiereActuelle != null ? etudiant.filiereActuelle.nom : 'Non orienté'}">Filière</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label>Téléphone</label>
+                            <p class="form-control-custom mb-0" th:text="${etudiant.telephone != null ? etudiant.telephone : 'Non renseigné'}">Téléphone</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-custom">
+                            <label>Adresse</label>
+                            <p class="form-control-custom mb-0" th:text="${etudiant.adresse != null ? etudiant.adresse : 'Non renseignée'}">Adresse</p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-group-custom">
+                            <label>E-mail</label>
+                            <p class="form-control-custom mb-0" th:text="${etudiant.utilisateur.email}">email@exemple.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="glass-card p-4 h-100">
+                        <h5 class="fw-bold mb-3">Accès rapide</h5>
+                        <div class="d-grid gap-2">
+                            <a href="/etudiant/notes" class="btn btn-outline-primary text-start d-flex align-items-center gap-2" style="border-radius: 8px;">
+                                <i class="fa-solid fa-file-signature"></i> Mes notes
+                            </a>
+                            <a href="/etudiant/reclamations" class="btn btn-outline-primary text-start d-flex align-items-center gap-2" style="border-radius: 8px;">
+                                <i class="fa-solid fa-circle-question"></i> Mes réclamations
+                            </a>
+                            <a href="/etudiant/profil" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2" style="border-radius: 8px;">
+                                <i class="fa-solid fa-id-card"></i> Actualiser le profil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="glass-card p-4 h-100">
+                        <h5 class="fw-bold mb-3">Résumé</h5>
+                        <p class="text-muted mb-0">Votre profil permet de consulter vos informations personnelles, suivre votre orientation et gérer vos réclamations. Si certains champs sont manquants, contactez le service scolarité.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+</body>
+</html>

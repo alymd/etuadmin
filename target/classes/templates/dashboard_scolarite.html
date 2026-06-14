@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Dashboard Scolarité')}"></head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments :: sidebar('dashboard', 'ROLE_SCOLARITE')}"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Navbar -->
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_SCOLARITE')}"></div>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper animated-fade-in">
+            <!-- Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">Espace Scolarité</h2>
+                    <p class="text-muted">Gestion des inscriptions, saisie des notes et traitement des réclamations.</p>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Total Étudiants</span>
+                            <h3 class="fw-bold mt-1 mb-0" th:text="${countEtudiants}">0</h3>
+                        </div>
+                        <div class="bg-primary text-white rounded p-3">
+                            <i class="fa-solid fa-user-graduate fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Réclamations en Attente</span>
+                            <h3 class="fw-bold mt-1 mb-0 text-danger" th:text="${countReclamationsAttente}">0</h3>
+                        </div>
+                        <div class="bg-danger text-white rounded p-3" style="background-color: var(--danger) !important;">
+                            <i class="fa-solid fa-circle-exclamation fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Session d'Examen</span>
+                            <h3 class="fw-bold mt-1 mb-0 text-success">Normale</h3>
+                        </div>
+                        <div class="bg-success text-white rounded p-3" style="background-color: var(--success) !important;">
+                            <i class="fa-solid fa-file-signature fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Actions Grid -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="glass-card p-4 text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-primary-light text-primary rounded-circle mb-3" style="width: 60px; height: 60px;">
+                            <i class="fa-solid fa-pen-to-square fa-lg"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">Saisie des Notes</h5>
+                        <p class="small text-muted mb-3">Enregistrez et modifiez les notes par matière et semestre.</p>
+                        <a href="/scolarite/notes" class="btn btn-primary-custom btn-sm w-100">Saisir les Notes</a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="glass-card p-4 text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-success-light text-success rounded-circle mb-3" style="width: 60px; height: 60px;">
+                            <i class="fa-solid fa-signature fa-lg"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">Inscriptions</h5>
+                        <p class="small text-muted mb-3">Inscrire les étudiants aux semestres et parcours académiques.</p>
+                        <a href="/scolarite/inscriptions" class="btn btn-primary-custom btn-sm w-100" style="background-color: var(--success); border: none;">Gérer Inscriptions</a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="glass-card p-4 text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-danger-light text-danger rounded-circle mb-3" style="width: 60px; height: 60px;">
+                            <i class="fa-solid fa-circle-exclamation fa-lg"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">Réclamations</h5>
+                        <p class="small text-muted mb-3">Traitez les réclamations de notes déposées par les étudiants.</p>
+                        <a href="/scolarite/reclamations" class="btn btn-primary-custom btn-sm w-100" style="background-color: var(--danger); border: none;">Traiter Réclamations</a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="glass-card p-4 text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-warning-light text-warning rounded-circle mb-3" style="width: 60px; height: 60px; background-color: hsl(38, 92%, 95%);">
+                            <i class="fa-solid fa-file-invoice fa-lg"></i>
+                        </div>
+                        <h6 class="fw-bold mb-2">Bulletins & Relevés</h5>
+                        <p class="small text-muted mb-3">Générez les relevés de notes officiels au format PDF.</p>
+                        <a href="/scolarite/releves" class="btn btn-primary-custom btn-sm w-100" style="background-color: var(--warning); border: none;">Éditer Relevés</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3">Journal Récent d'Activités</h5>
+                <div class="table-custom-wrapper">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Action</th>
+                                <th>Date & Heure</th>
+                                <th>Détails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log : ${recentActivites}">
+                                <td class="fw-medium text-dark" th:text="${log.utilisateur}">User</td>
+                                <td>
+                                    <span class="badge rounded-pill bg-secondary" th:text="${log.action}">Action</span>
+                                </td>
+                                <td th:text="${#temporals.format(log.dateAction, 'dd/MM/yyyy HH:mm')}">Date</td>
+                                <td class="text-muted" th:text="${log.details}">Details</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(recentActivites)}">
+                                <td colspan="4" class="text-center text-muted py-3">Aucune activité enregistrée.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+</body>
+</html>

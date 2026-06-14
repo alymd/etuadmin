@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Journal Activité')}"></head>
+<body>
+
+<div class="app-container">
+    <div th:replace="~{fragments :: sidebar('journal', 'ROLE_ADMIN')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ADMIN')}"></div>
+
+        <div class="content-wrapper animated-fade-in">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="fw-bold mb-1">Journal d'Activité</h5>
+                        <p class="text-muted small mb-0">Consultez les actions système et les opérations administratives enregistrées.</p>
+                    </div>
+                </div>
+
+                <div class="table-custom-wrapper">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>Détails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="log : ${logs}">
+                                <td th:text="${log.utilisateur}">Utilisateur</td>
+                                <td th:text="${#temporals.format(log.dateAction, 'dd/MM/yyyy HH:mm')}">Date</td>
+                                <td th:text="${log.action}">Action</td>
+                                <td th:text="${log.details}">Détails</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(logs)}">
+                                <td colspan="4" class="text-center text-muted py-3">Aucun journal d'activité à afficher.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+</body>
+</html>

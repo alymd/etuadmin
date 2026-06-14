@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Gestion des Orientations')}"></head>
+<body>
+
+<div class="app-container">
+    <div th:replace="~{fragments :: sidebar('orientation', 'ROLE_ADMIN')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ADMIN')}"></div>
+
+        <div class="content-wrapper animated-fade-in">
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <span th:text="${success}">Succès !</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <span th:text="${error}">Erreur !</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="row g-4">
+                <!-- Liste des orientations -->
+                <div class="col-lg-8">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-3">Historique des Orientations</h5>
+                        <div class="table-custom-wrapper">
+                            <table class="table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Étudiant</th>
+                                        <th>Filière Actuelle</th>
+                                        <th>Année Universitaire</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${not #lists.isEmpty(orientations)}" th:each="orientation : ${orientations}">
+                                        <td class="fw-semibold" th:text="${orientation.etudiant.utilisateur.prenom} + ' ' + ${orientation.etudiant.utilisateur.nom}">Étudiant</td>
+                                        <td th:text="${orientation.filiere.nom}">Filière</td>
+                                        <td th:text="${orientation.anneeUniversitaire.libelle}">Année</td>
+                                        <td>
+                                            <span class="badge bg-secondary badge-custom" th:text="${orientation.statut}">Statut</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-dark me-1" 
+                                                    th:data-orientation-id="${orientation.id}"
+                                                    th:data-orientation-etudiant="${orientation.etudiant.utilisateur.prenom} + ' ' + ${orientation.etudiant.utilisateur.nom}"
+                                                    th:data-orientation-filiere="${orientation.filiere.nom}"
+                                                    onclick="const btn = event.target.closest('button'); chargerOrientation(btn.dataset.orientationId, btn.dataset.orientationEtudiant, btn.dataset.orientationFiliere)" 
+                                                    style="border-radius: 6px;"><i class="fa-solid fa-edit"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(orientations)}">
+                                        <td colspan="5" class="text-center text-muted py-3">Aucune orientation enregistrée.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulaire d'ajout/modification -->
+                <div class="col-lg-4">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-3" id="form-title">Nouvelle Orientation</h5>
+                        <form th:action="@{/admin/orientation/sauver}" method="post">
+                            <input type="hidden" id="edit-id" name="id">
+
+                            <div class="form-group-custom">
+                                <label for="etudiant">Étudiant</label>
+                                <select id="etudiant" name="etudiantId" class="form-control-custom" required>
+                                    <option value="">Sélectionner un étudiant...</option>
+                                    <option th:each="etudiant : ${etudiants}" th:value="${etudiant.id}" th:text="${etudiant.utilisateur.prenom} + ' ' + ${etudiant.utilisateur.nom}">Étudiant</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label for="filiere">Filière</label>
+                                <select id="filiere" name="filiereId" class="form-control-custom" required>
+                                    <option value="">Sélectionner une filière...</option>
+                                    <option th:each="filiere : ${filieres}" th:value="${filiere.id}" th:text="${filiere.nom}">Filière</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group-custom">
+                                <label for="annee">Année Universitaire</label>
+                                <select id="annee" name="anneeUniversitaireId" class="form-control-custom" required>
+                                    <option value="">Sélectionner une année...</option>
+                                    <option th:each="annee : ${annees}" th:value="${annee.id}" th:text="${annee.libelle}">Année</option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary-custom w-100">Enregistrer</button>
+                                <button type="button" class="btn btn-outline-secondary w-100" onclick="annulerEdit()" style="border-radius: 8px;">Annuler</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+<script>
+    function chargerOrientation(id, etudiant, filiere) {
+        document.getElementById('form-title').innerText = "Modifier l'Orientation";
+        document.getElementById('edit-id').value = id;
+    }
+
+    function annulerEdit() {
+        document.getElementById('form-title').innerText = "Nouvelle Orientation";
+        document.getElementById('edit-id').value = "";
+        document.getElementById('etudiant').value = "";
+        document.getElementById('filiere').value = "";
+        document.getElementById('annee').value = "";
+    }
+</script>
+</body>
+</html>

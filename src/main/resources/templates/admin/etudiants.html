@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Gestion des Étudiants')}"></head>
+<body>
+
+<div class="app-container">
+    <div th:replace="~{fragments :: sidebar('etudiants', 'ROLE_ADMIN')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ADMIN')}"></div>
+
+        <div class="content-wrapper animated-fade-in">
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <span th:text="${success}">Succès !</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 8px;">
+                <span th:text="${error}">Erreur !</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div th:replace="~{fragments :: recherche-etudiants('/admin/etudiants')}"></div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-2"><i class="fa-solid fa-file-import text-primary me-2"></i>Importation en Masse (Excel)</h5>
+                        <form th:action="@{/admin/etudiants/import}" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+                            <input type="file" name="file" class="form-control" accept=".xlsx, .xls" required style="border-radius: 8px;">
+                            <button type="submit" class="btn btn-primary-custom">Importer</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="glass-card p-4 h-100 d-flex align-items-end gap-2">
+                        <a href="/admin/etudiants/export" class="btn btn-success flex-grow-1"><i class="fa-solid fa-file-excel"></i> Exporter</a>
+                        <a href="/admin/etudiants/nouveau" class="btn btn-primary-custom flex-grow-1"><i class="fa-solid fa-user-plus"></i> Nouvel Étudiant</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3">Registre des Étudiants</h5>
+                <div class="table-custom-wrapper">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Matricule</th>
+                                <th>Nom Complet</th>
+                                <th>E-mail</th>
+                                <th>Niveau</th>
+                                <th>Filière</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="et : ${etudiants}">
+                                <td class="fw-semibold text-primary" th:text="${et.matricule}">Matricule</td>
+                                <td th:text="${et.utilisateur.prenom} + ' ' + ${et.utilisateur.nom}">Nom</td>
+                                <td th:text="${et.utilisateur.email}">Email</td>
+                                <td><span class="badge bg-secondary badge-custom" th:text="${et.niveau}">L1</span></td>
+                                <td th:text="${et.filiereActuelle != null ? et.filiereActuelle.code : 'Non orienté'}">Filiere</td>
+                                <td>
+                                    <a th:href="@{/admin/etudiants/modifier/{id}(id=${et.id})}" class="btn btn-sm btn-outline-primary me-1"><i class="fa-solid fa-edit"></i></a>
+                                    <a th:href="@{/admin/etudiants/supprimer/{id}(id=${et.id})}" class="btn btn-sm btn-outline-danger"
+                                       th:attr="onclick=|return confirm('Supprimer l etudiant ${et.matricule} ?');|"><i class="fa-solid fa-trash"></i></a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(etudiants)}">
+                                <td colspan="6" class="text-center text-muted py-3">Aucun étudiant trouvé.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+</body>
+</html>

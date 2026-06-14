@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Relevé - ' + ${inscription.etudiant.matricule}">Relevé de notes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; color: #222; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 1.4rem; margin: 0; }
+        .header h2 { font-size: 1.1rem; margin: 8px 0 0; color: #444; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin-bottom: 24px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        th, td { border: 1px solid #ccc; padding: 8px; font-size: 0.9rem; }
+        th { background: #f0f0f0; }
+        .module-row { background: #e8f0fe; font-weight: bold; }
+        .summary { margin-top: 20px; padding: 16px; background: #f8f9fa; border-left: 4px solid #2563eb; }
+        .signature { margin-top: 60px; text-align: right; }
+        @media print {
+            body { margin: 20px; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print" style="margin-bottom: 20px;">
+    <button onclick="window.print()" style="padding: 8px 16px; cursor: pointer;">Imprimer</button>
+    <button onclick="window.close()" style="padding: 8px 16px; cursor: pointer; margin-left: 8px;">Fermer</button>
+</div>
+
+<div class="header">
+    <h1>UNIVERSITÉ DE DÉMONSTRATION</h1>
+    <h2>RELEVÉ DE NOTES SEMESTRIEL</h2>
+    <p th:text="'Semestre ' + ${inscription.semestre.code} + ' | ' + ${inscription.anneeUniversitaire.libelle}">Semestre</p>
+</div>
+
+<div class="info-grid">
+    <div><strong>Matricule :</strong> <span th:text="${inscription.etudiant.matricule}">C00001</span></div>
+    <div><strong>Filière :</strong> <span th:text="${inscription.etudiant.filiereActuelle != null ? inscription.etudiant.filiereActuelle.nom : 'Non orienté'}">Filière</span></div>
+    <div><strong>Nom :</strong> <span th:text="${inscription.etudiant.utilisateur.nom}">Nom</span></div>
+    <div><strong>Prénom :</strong> <span th:text="${inscription.etudiant.utilisateur.prenom}">Prénom</span></div>
+    <div><strong>Niveau :</strong> <span th:text="${inscription.etudiant.niveau}">L1</span></div>
+    <div><strong>Date :</strong> <span th:text="${#temporals.format(T(java.time.LocalDate).now(), 'dd/MM/yyyy')}">Date</span></div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Module / Matière</th>
+            <th>Crédits</th>
+            <th>CC</th>
+            <th>TP</th>
+            <th>Examen</th>
+            <th>Moyenne</th>
+            <th>Décision</th>
+        </tr>
+    </thead>
+    <tbody>
+        <th:block th:each="moduleItem : ${modules}">
+            <tr class="module-row">
+                <td colspan="7" th:text="${moduleItem.code} + ' - ' + ${moduleItem.nom}">Module</td>
+            </tr>
+            <tr th:each="mat : ${moduleItem.matieres}" th:with="n=${notesMap[mat.id]}">
+                <td th:text="${mat.code} + ' - ' + ${mat.nom}">Matière</td>
+                <td th:text="${mat.credits}">3</td>
+                <td th:text="${n != null and n.noteCC != null ? n.noteCC : '-'}">-</td>
+                <td th:text="${n != null and n.noteTP != null ? n.noteTP : '-'}">-</td>
+                <td th:text="${n != null and n.noteExamen != null ? n.noteExamen : '-'}">-</td>
+                <td th:text="${n != null and n.noteGenerale != null ? n.noteGenerale : '-'}">-</td>
+                <td th:text="${n != null and n.validee ? 'Validé' : 'Non validé'}">-</td>
+            </tr>
+        </th:block>
+    </tbody>
+</table>
+
+<div class="summary">
+    <p><strong>Moyenne semestrielle :</strong>
+        <span th:text="${inscription.moyenneSemestre != null ? inscription.moyenneSemestre + ' / 20' : 'N/A'}">0 / 20</span></p>
+    <p><strong>Crédits obtenus :</strong>
+        <span th:text="${inscription.creditsObtenus != null ? inscription.creditsObtenus + ' / 30' : '0 / 30'}">0 / 30</span></p>
+    <p><strong>Mention :</strong> <span th:text="${mention.libelle}">Passable</span></p>
+    <p><strong>Décision :</strong>
+        <span th:text="${inscription.valide ? 'SEMESTRE VALIDÉ' : 'SEMESTRE NON VALIDÉ'}">Décision</span></p>
+</div>
+
+<div class="signature">
+    <p>Le Chef de Scolarité<br>(Signature et cachet)</p>
+</div>
+
+</body>
+</html>

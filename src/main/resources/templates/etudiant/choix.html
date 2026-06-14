@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Choix d Orientation')}"></head>
+<body>
+
+<div class="app-container">
+    <div th:replace="~{fragments :: sidebar('dashboard', 'ROLE_ETUDIANT')}"></div>
+
+    <div class="main-content">
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ETUDIANT')}"></div>
+
+        <div class="content-wrapper animated-fade-in">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3">Formulation des vœux d'orientation</h5>
+                <div th:if="${nonL1}" class="alert alert-warning" role="alert">
+                    L'orientation est uniquement disponible pour les étudiants de L1.
+                </div>
+
+                <div th:unless="${nonL1}">
+                    <form th:action="@{/etudiant/choix/sauver}" method="post" class="row g-3 mb-4">
+                        <div class="col-md-6 form-group-custom">
+                            <label for="choix1">Choix 1</label>
+                            <select id="choix1" name="choix1" class="form-control-custom" required>
+                                <option value="">Sélectionner une filière...</option>
+                                <option th:each="filiere : ${filieres}" th:value="${filiere.id}" th:text="${filiere.nom}">Filière</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group-custom">
+                            <label for="choix2">Choix 2</label>
+                            <select id="choix2" name="choix2" class="form-control-custom" required>
+                                <option value="">Sélectionner une filière...</option>
+                                <option th:each="filiere : ${filieres}" th:value="${filiere.id}" th:text="${filiere.nom}">Filière</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group-custom">
+                            <label for="choix3">Choix 3</label>
+                            <select id="choix3" name="choix3" class="form-control-custom" required>
+                                <option value="">Sélectionner une filière...</option>
+                                <option th:each="filiere : ${filieres}" th:value="${filiere.id}" th:text="${filiere.nom}">Filière</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group-custom">
+                            <label for="choix4">Choix 4</label>
+                            <select id="choix4" name="choix4" class="form-control-custom" required>
+                                <option value="">Sélectionner une filière...</option>
+                                <option th:each="filiere : ${filieres}" th:value="${filiere.id}" th:text="${filiere.nom}">Filière</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary-custom">Sauvegarder mes vœux</button>
+                        </div>
+                    </form>
+
+                    <div th:if="${!#lists.isEmpty(choixExistants)}">
+                        <h6 class="fw-semibold mb-3">Vos vœux actuels</h6>
+                        <ol class="ps-3">
+                            <li th:each="choix : ${choixExistants}" th:text="${choix.ordrePreference} + '. ' + ${choix.filiere.nom}">Filière</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+</body>
+</html>

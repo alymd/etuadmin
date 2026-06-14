@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Dashboard Administrateur')}"></head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments :: sidebar('dashboard', 'ROLE_ADMIN')}"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Navbar -->
+        <div th:replace="~{fragments :: navbar(${username}, 'ROLE_ADMIN')}"></div>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper animated-fade-in">
+            <!-- Title -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">Tableau de bord Administrateur</h2>
+                    <p class="text-muted">Vue d'ensemble de la scolarité et de l'administration du système.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="/admin/etudiants/nouveau" class="btn btn-primary-custom d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Nouvel Étudiant
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Étudiants Inscrits</span>
+                            <h3 class="fw-bold mt-1 mb-0" th:text="${countEtudiants}">0</h3>
+                        </div>
+                        <div class="bg-primary text-white rounded p-3">
+                            <i class="fa-solid fa-user-graduate fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Filières Actives</span>
+                            <h3 class="fw-bold mt-1 mb-0" th:text="${countFilieres}">0</h3>
+                        </div>
+                        <div class="bg-success text-white rounded p-3" style="background-color: var(--success) !important;">
+                            <i class="fa-solid fa-network-wired fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Modules / Matières</span>
+                            <h3 class="fw-bold mt-1 mb-0" th:text="${countModules} + ' / ' + ${countMatieres}">0/0</h3>
+                        </div>
+                        <div class="bg-warning text-white rounded p-3">
+                            <i class="fa-solid fa-book-open fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-medium">Réclamations en Attente</span>
+                            <h3 class="fw-bold mt-1 mb-0 text-danger" th:text="${countReclamationsAttente}">0</h3>
+                        </div>
+                        <div class="bg-danger text-white rounded p-3" style="background-color: var(--danger) !important;">
+                            <i class="fa-solid fa-circle-exclamation fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Panels -->
+            <div class="row g-4">
+                <!-- Recent Activities (Audit Logs) -->
+                <div class="col-lg-8">
+                    <div class="glass-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">Journal d'Audit Récent</h5>
+                            <a href="/admin/journal" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">Voir tout</a>
+                        </div>
+                        
+                        <div class="table-custom-wrapper">
+                            <table class="table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Utilisateur</th>
+                                        <th>Action</th>
+                                        <th>Date & Heure</th>
+                                        <th>Détails</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="log : ${recentActivites}">
+                                        <td class="fw-medium text-dark" th:text="${log.utilisateur}">User</td>
+                                        <td>
+                                            <span class="badge rounded-pill bg-secondary" th:text="${log.action}">Action</span>
+                                        </td>
+                                        <td th:text="${#temporals.format(log.dateAction, 'dd/MM/yyyy HH:mm')}">Date</td>
+                                        <td class="text-muted text-truncate" style="max-width: 250px;" th:text="${log.details}">Details</td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(recentActivites)}">
+                                        <td colspan="4" class="text-center text-muted py-3">Aucune activité enregistrée.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shortcuts & Orientation Panel -->
+                <div class="col-lg-4">
+                    <div class="glass-card p-4 mb-4">
+                        <h5 class="fw-bold mb-3">Raccourcis Administrateur</h5>
+                        <div class="d-grid gap-2">
+                            <a href="/admin/utilisateurs" class="btn btn-outline-dark text-start d-flex align-items-center gap-2" style="border-radius: 8px; padding: 0.6rem 1rem;">
+                                <i class="fa-solid fa-users-gear text-primary"></i> Gérer les Utilisateurs
+                            </a>
+                            <a href="/admin/etudiants" class="btn btn-outline-dark text-start d-flex align-items-center gap-2" style="border-radius: 8px; padding: 0.6rem 1rem;">
+                                <i class="fa-solid fa-user-graduate text-success"></i> Gérer les Étudiants
+                            </a>
+                            <a href="/admin/modules" class="btn btn-outline-dark text-start d-flex align-items-center gap-2" style="border-radius: 8px; padding: 0.6rem 1rem;">
+                                <i class="fa-solid fa-book-bookmark text-warning"></i> Gérer Modules & Cours
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-4 text-white" style="background: linear-gradient(135deg, var(--primary), #6366f1); border: none;">
+                        <h5 class="fw-bold mb-2">Orientation Automatique</h5>
+                        <p class="small text-white-50">Calculez les moyennes d'orientation des étudiants de L1, classez-les par mérite et affectez-les aux filières de L2 selon leurs vœux.</p>
+                        <form th:action="@{/admin/orientation/calculer}" method="post">
+                            <button type="submit" class="btn btn-light text-primary fw-bold w-100 py-2 d-flex align-items-center justify-content-center gap-2" style="border-radius: 8px;">
+                                <i class="fa-solid fa-rotate"></i> Lancer l'Affectation
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments :: footer()}"></div>
+</body>
+</html>
