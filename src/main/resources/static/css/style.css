@@ -1,23 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary: hsl(256, 70%, 45%);
-    --primary-light: hsl(256, 70%, 96%);
-    --primary-hover: hsl(256, 70%, 35%);
+    --primary: #1E3A8A;
+    --primary-light: #DBEAFE;
+    --primary-hover: #1E40AF;
+
+    --dark: #0F172A;
+    --light: #F8FAFC;
+
     --secondary: hsl(210, 20%, 98%);
-    --dark: #121824;
-    --dark-light: #1e293b;
-    --light: #f8fafc;
     --success: hsl(142, 72%, 29%);
     --success-light: hsl(142, 72%, 95%);
     --warning: hsl(38, 92%, 50%);
     --danger: hsl(0, 84%, 60%);
     --danger-light: hsl(0, 84%, 97%);
     --border: #e2e8f0;
+
     --font-family: 'Inter', -apple-system, sans-serif;
+
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
     --radius: 12px;
 }
 
@@ -74,7 +78,7 @@ body {
 }
 
 .sidebar .brand span {
-    background: linear-gradient(135deg, #a78bfa, #818cf8);
+    background: linear-gradient(135deg, #60A5FA, #2563EB);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -246,14 +250,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(circle at 10% 20%, rgb(18, 16, 46) 0%, rgb(9, 8, 20) 90%);
+    background: linear-gradient(
+            135deg,
+            #0f172a 0%,
+            #1e3a8a 100%
+    );
 }
 
 .login-card {
     width: 100%;
     max-width: 440px;
     padding: 2.5rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);

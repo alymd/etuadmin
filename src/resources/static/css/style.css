@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary: hsl(256, 70%, 45%);
+    --primary: hsl(255 51% 49%);
     --primary-light: hsl(256, 70%, 96%);
     --primary-hover: hsl(256, 70%, 35%);
     --secondary: hsl(210, 20%, 98%);
