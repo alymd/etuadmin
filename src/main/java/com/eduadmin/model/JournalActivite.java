@@ -17,13 +17,13 @@ public class JournalActivite {
     private Long id;
 
     @Column(nullable = false, length = 100)
-    private String utilisateur; // Username ou "System"
+    private String utilisateur;
 
     @Column(name = "date_action", nullable = false)
     private LocalDateTime dateAction;
 
     @Column(nullable = false, length = 100)
-    private String action; // Ex: CONNEXION, MODIFICATION_NOTE, AFFECTATION
+    private String action;
 
     @Column(nullable = false, length = 1000)
     private String details;

@@ -25,5 +25,5 @@ public class ReclamationDto {
     @NotBlank(message = "La description est obligatoire")
     private String description;
 
-    private MultipartFile pieceJointe; // Fichier justificatif
+    private MultipartFile pieceJointe;
 }

@@ -27,10 +27,10 @@ public class ReleveNote {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "semestre_id")
-    private Semestre semestre; // Null si c'est annuel ou complet
+    private Semestre semestre;
 
     @Column(nullable = false, length = 30)
-    private String type; // SEMESTRIEL, ANNUEL, COMPLET
+    private String type; 
 
     @Column(name = "date_generation", nullable = false)
     private LocalDate dateGeneration;

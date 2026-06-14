@@ -32,13 +32,12 @@ public class ScolariteController {
     private final NotificationRepository notificationRepository;
     private final AnneeUniversitaireRepository anneeUniversitaireRepository;
     private final FiliereRepository filiereRepository;
-    
+
     private final EvaluationService evaluationService;
     private final DocumentService documentService;
     private final JournalService journalService;
     private final EtudiantService etudiantService;
 
-    // --- CONSULTATION ETUDIANTS ---
 
     @GetMapping("/etudiants")
     public String listeEtudiants(@RequestParam(required = false) String nom,
@@ -58,7 +57,6 @@ public class ScolariteController {
         return "scolarite/etudiants";
     }
 
-    // --- SAISIE DES NOTES ---
 
     @GetMapping("/notes")
     public String consultationNotes(@RequestParam(required = false) Long semestreId,
@@ -162,7 +160,6 @@ public class ScolariteController {
                 .body(bytes);
     }
 
-    // --- INSCRIPTIONS ---
 
     @GetMapping("/inscriptions")
     public String pageInscriptions(@RequestParam(required = false) Long anneeId, Model model) {
@@ -179,7 +176,7 @@ public class ScolariteController {
     }
 
     @PostMapping("/inscriptions/sauver")
-    public String inscrireEtudiant(@RequestParam Long etudiantId, @RequestParam Long semestreId, 
+    public String inscrireEtudiant(@RequestParam Long etudiantId, @RequestParam Long semestreId,
                                    Authentication auth, RedirectAttributes redirect) {
         try {
             Etudiant etudiant = etudiantRepository.findById(etudiantId).orElseThrow();
@@ -197,8 +194,8 @@ public class ScolariteController {
                         .valide(false)
                         .build();
                 inscriptionRepository.save(ins);
-                journalService.log(auth.getName(), "INSCRIPTION_MANUELLE", 
-                    "Etudiant " + etudiant.getMatricule() + " inscrit au semestre " + semestre.getCode());
+                journalService.log(auth.getName(), "INSCRIPTION_MANUELLE",
+                        "Etudiant " + etudiant.getMatricule() + " inscrit au semestre " + semestre.getCode());
                 redirect.addFlashAttribute("success", "Etudiant inscrit avec succes !");
             }
         } catch (Exception e) {
@@ -222,7 +219,6 @@ public class ScolariteController {
         return "redirect:/scolarite/inscriptions";
     }
 
-    // --- RECLAMATIONS ---
 
     @GetMapping("/reclamations")
     public String listeReclamations(Model model) {
@@ -243,15 +239,15 @@ public class ScolariteController {
             Notification notif = Notification.builder()
                     .destinataire(rec.getEtudiant().getUtilisateur())
                     .titre("Traitement de Reclamation")
-                    .message("Votre reclamation concernant la matiere " + rec.getMatiere().getNom() + 
-                             " a ete traitee. Statut : " + statut.name() + ". Commentaire : " + commentaireAdmin)
+                    .message("Votre reclamation concernant la matiere " + rec.getMatiere().getNom() +
+                            " a ete traitee. Statut : " + statut.name() + ". Commentaire : " + commentaireAdmin)
                     .dateCreation(LocalDateTime.now())
                     .lue(false)
                     .build();
             notificationRepository.save(notif);
 
-            journalService.log(auth.getName(), "TRAITEMENT_RECLAMATION", 
-                "Reclamation ID " + id + " traitee avec le statut: " + statut);
+            journalService.log(auth.getName(), "TRAITEMENT_RECLAMATION",
+                    "Reclamation ID " + id + " traitee avec le statut: " + statut);
             redirect.addFlashAttribute("success", "Reclamation mise a jour !");
         } catch (Exception e) {
             redirect.addFlashAttribute("error", "Erreur : " + e.getMessage());
@@ -259,7 +255,6 @@ public class ScolariteController {
         return "redirect:/scolarite/reclamations";
     }
 
-    // --- RELEVES ---
 
     @GetMapping("/releves")
     public String pageReleves(@RequestParam(required = false) String niveau,
@@ -296,35 +291,51 @@ public class ScolariteController {
     @GetMapping("/releves/imprimer/{inscriptionId}")
     public String imprimerReleve(@PathVariable Long inscriptionId, Model model) {
         Inscription ins = inscriptionRepository.findById(inscriptionId).orElseThrow();
+
         evaluationService.calculerResultatsInscription(inscriptionId);
 
         List<Module> modules;
-        if (ins.getEtudiant().getFiliereActuelle() != null) {
+        Etudiant etudiant = ins.getEtudiant();
+        if (etudiant.getFiliereActuelle() != null && ins.getSemestre().getCode().substring(0, 2).equals(etudiant.getNiveau())) {
             modules = moduleRepository.findBySemestreIdAndFiliereId(
-                    ins.getSemestre().getId(), ins.getEtudiant().getFiliereActuelle().getId());
+                    ins.getSemestre().getId(), etudiant.getFiliereActuelle().getId());
         } else {
             modules = moduleRepository.findBySemestreId(ins.getSemestre().getId());
         }
 
         model.addAttribute("inscription", ins);
         model.addAttribute("modules", modules);
-        model.addAttribute("notesMap", buildNotesMap(inscriptionId, modules));
+        model.addAttribute("notesMap", buildNotesMapWithPlaceholders(ins, modules));
         model.addAttribute("mention", evaluationService.calculerMention(ins.getMoyenneSemestre()));
         return "releve_print";
     }
 
-    private Map<Long, Note> buildNotesMap(Long inscriptionId, List<Module> modules) {
+    private Map<Long, Note> buildNotesMapWithPlaceholders(Inscription ins, List<Module> modules) {
         Map<Long, Note> notesMap = new HashMap<>();
         for (Module mod : modules) {
             for (Matiere mat : mod.getMatieres()) {
-                noteRepository.findByInscriptionIdAndMatiereId(inscriptionId, mat.getId())
-                        .ifPresent(n -> notesMap.put(mat.getId(), n));
+                Optional<Note> noteOpt = noteRepository.findByInscriptionIdAndMatiereId(ins.getId(), mat.getId());
+
+                if (noteOpt.isPresent()) {
+                    notesMap.put(mat.getId(), noteOpt.get());
+                } else {
+                    Note placeholder = Note.builder()
+                            .inscription(ins)
+                            .matiere(mat)
+                            .noteCC(null)
+                            .noteExamen(null)
+                            .noteTP(null)
+                            .noteRattrapage(null)
+                            .noteGenerale(null)
+                            .validee(false)
+                            .build();
+                    notesMap.put(mat.getId(), placeholder);
+                }
             }
         }
         return notesMap;
     }
 
-    // --- STATISTIQUES ---
 
     @GetMapping("/statistiques")
     public String pageStatistiques(@RequestParam(required = false) String niveau, Model model) {

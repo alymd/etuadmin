@@ -27,7 +27,7 @@ public class ChoixFiliere {
     private Filiere filiere;
 
     @Column(name = "ordre_preference", nullable = false)
-    private int ordrePreference; // 1, 2, 3 ou 4
+    private int ordrePreference;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "annee_universitaire_id", nullable = false)

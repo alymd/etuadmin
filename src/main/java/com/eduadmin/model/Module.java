@@ -19,10 +19,10 @@ public class Module {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 30)
-    private String code; // Ex: MOD_INF1
+    private String code;
 
     @Column(nullable = false, length = 150)
-    private String nom; // Ex: Algorithmique et Programmation
+    private String nom;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "semestre_id", nullable = false)
@@ -36,7 +36,6 @@ public class Module {
     @Builder.Default
     private List<Matiere> matieres = new ArrayList<>();
 
-    // Méthode utilitaire pour calculer le total des crédits du module
     public int getCreditsCalculated() {
         if (matieres == null) return 0;
         return matieres.stream().mapToInt(Matiere::getCredits).sum();

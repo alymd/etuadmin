@@ -16,8 +16,8 @@ public class AnneeUniversitaire {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 20)
-    private String libelle; // Ex: 2025-2026
+    private String libelle;
 
     @Column(nullable = false)
-    private boolean courante = false; // Indique si c'est l'année en cours
+    private boolean courante = false;
 }

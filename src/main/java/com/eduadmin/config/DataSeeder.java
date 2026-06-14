@@ -1,9 +1,7 @@
 package com.eduadmin.config;
 
 import com.eduadmin.model.*;
-import com.eduadmin.model.Module;
 import com.eduadmin.repository.*;
-import com.eduadmin.service.EvaluationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -25,16 +23,10 @@ public class DataSeeder implements CommandLineRunner {
     private final FiliereRepository filiereRepository;
     private final AnneeUniversitaireRepository anneeUniversitaireRepository;
     private final SemestreRepository semestreRepository;
-    private final ModuleRepository moduleRepository;
-    private final MatiereRepository matiereRepository;
-    private final InscriptionRepository inscriptionRepository;
-    private final NoteRepository noteRepository;
     private final FormuleOrientationRepository formuleOrientationRepository;
     private final AnnonceRepository annonceRepository;
     
     private final PasswordEncoder passwordEncoder;
-    private final EvaluationService evaluationService;
-    private final ChoixFiliereRepository choixFiliereRepository;
 
     @Override
     @Transactional
@@ -46,7 +38,7 @@ public class DataSeeder implements CommandLineRunner {
 
         log.info("Initialisation du jeu de donnees de demonstration...");
 
-        // 1. Utilisateurs Administration et Scolarité
+
         Utilisateur admin = Utilisateur.builder()
                 .username("admin")
                 .password(passwordEncoder.encode("admin"))
@@ -69,14 +61,14 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
         utilisateurRepository.save(scolarite);
 
-        // 2. Année Universitaire
+
         AnneeUniversitaire annee = AnneeUniversitaire.builder()
                 .libelle("2025-2026")
                 .courante(true)
                 .build();
         annee = anneeUniversitaireRepository.save(annee);
 
-        // 3. Semestres
+
         List<Semestre> semestres = new ArrayList<>();
         for (int i = 1; i <= 6; i++) {
             Semestre sem = Semestre.builder()
@@ -88,7 +80,7 @@ public class DataSeeder implements CommandLineRunner {
             semestres.add(semestreRepository.save(sem));
         }
 
-        // 4. Filières L1 (Parcours initiaux) et L2/L3 (Filières spécialisées)
+
         Filiere mpi = filiereRepository.save(Filiere.builder().code("MPI").nom("Mathematiques-Physique-Informatique").capaciteMax(100).build());
         Filiere bg = filiereRepository.save(Filiere.builder().code("BG").nom("Biologie-Geologie").capaciteMax(100).build());
         Filiere pc = filiereRepository.save(Filiere.builder().code("PC").nom("Physique-Chimie").capaciteMax(100).build());
@@ -100,18 +92,13 @@ public class DataSeeder implements CommandLineRunner {
         Filiere chimie = filiereRepository.save(Filiere.builder().code("Chimie").nom("Sciences Chimiques").capaciteMax(10).build());
         Filiere bio = filiereRepository.save(Filiere.builder().code("BIO").nom("Biologie").capaciteMax(10).build());
 
-        // 5. Formules d'Orientation pour L2
         formuleOrientationRepository.save(FormuleOrientation.builder().filiere(miage).formule("(MO1S1 + MO1S2 + 2*MO2S1 + 2*MO2S2 + MGS1 + MGS2) / 8").build());
         formuleOrientationRepository.save(FormuleOrientation.builder().filiere(da2i).formule("(MO1S1 + MO1S2 + 2*MO2S1 + 2*MO2S2 + MGS1 + MGS2) / 8").build());
         formuleOrientationRepository.save(FormuleOrientation.builder().filiere(pf).formule("(MO1S1 + MO1S2 + 2*MO2S1 + 2*MO2S2 + MGS1 + MGS2) / 8").build());
         formuleOrientationRepository.save(FormuleOrientation.builder().filiere(eea).formule("(MO1S1 + MO1S2 + 2*MO2S1 + 2*MO2S2 + MGS1 + MGS2) / 8").build());
 
-        // 7. Création de 3 Étudiants en L1 MPI
-        creerEtudiantDemo("C28916", "Dupont", "Lucas", "lucas@eduadmin.fr", annee, mpi);
-        creerEtudiantDemo("C38172", "Mercier", "Emma", "emma@eduadmin.fr", annee, mpi);
-        creerEtudiantDemo("C19735", "Bernard", "Thomas", "thomas@eduadmin.fr", annee, mpi);
 
-        // 8. Annonce universitaire de démo
+
         annonceRepository.save(Annonce.builder()
                 .titre("Ouverture des voeux d'orientation")
                 .contenu("Les etudiants de premiere annee (L1) peuvent desormais formuler leurs voeux pour le choix de leur filiere de L2 depuis leur espace personnel. La date limite de soumission est fixee a la fin du semestre.")
@@ -140,8 +127,8 @@ public class DataSeeder implements CommandLineRunner {
                 .utilisateur(u)
                 .matricule(matricule)
                 .dateNaissance(LocalDate.of(2005, 5, 15))
-                .telephone("0601020304")
-                .adresse("123 Rue de la Scolarite, Paris")
+                .telephone("43080280")
+                .adresse("Tvz, Nkc")
                 .niveau("L1")
                 .filiereActuelle(parcoursL1)
                 .build();

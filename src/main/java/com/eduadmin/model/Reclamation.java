@@ -35,7 +35,7 @@ public class Reclamation {
     private String description;
 
     @Column(name = "piece_jointe_nom", length = 255)
-    private String pieceJointeNom; // Nom du fichier stocké
+    private String pieceJointeNom;
 
     @Column(name = "date_creation", nullable = false)
     private LocalDateTime dateCreation;

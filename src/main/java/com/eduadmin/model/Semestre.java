@@ -17,7 +17,7 @@ public class Semestre {
     private Long id;
 
     @Column(nullable = false, length = 10)
-    private String code; // Ex: S1, S2, ..., S6
+    private String code;
 
     @Column(nullable = false)
     private LocalDate dateDebut;

@@ -31,11 +31,11 @@ public class Inscription {
     private AnneeUniversitaire anneeUniversitaire;
 
     @Column(name = "moyenne_semestre")
-    private Double moyenneSemestre; // Moyenne calculée du semestre
+    private Double moyenneSemestre;
 
     @Column(name = "credits_obtenus")
-    private Integer creditsObtenus; // Crédits ECTS obtenus sur ce semestre
+    private Integer creditsObtenus;
 
     @Column(nullable = false)
-    private boolean valide = false; // Indique si le semestre est validé (moyenne >= 10 et pas de note éliminatoire)
+    private boolean valide = false;
 }

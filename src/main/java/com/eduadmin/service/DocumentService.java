@@ -25,34 +25,30 @@ import java.util.Optional;
 public class DocumentService {
 
     private final NoteRepository noteRepository;
-    private final InscriptionRepository inscriptionRepository;
     private final ModuleRepository moduleRepository;
     private final EvaluationService evaluationService;
 
-    // --- GENERATION PDF ---
+
 
     public byte[] genererReleveSemestrielPDF(Inscription inscription) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A4);
-        
+
         try {
             PdfWriter.getInstance(document, out);
             document.open();
 
-            // Style de polices
             com.lowagie.text.Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, com.lowagie.text.Font.NORMAL);
             com.lowagie.text.Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, com.lowagie.text.Font.NORMAL);
             com.lowagie.text.Font textFont = FontFactory.getFont(FontFactory.HELVETICA, 10, com.lowagie.text.Font.NORMAL);
             com.lowagie.text.Font textBoldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, com.lowagie.text.Font.NORMAL);
 
-            // En-tête de l'université
-            Paragraph header = new Paragraph("UNIVERSITÉ DE DÉMONSTRATION\nSERVICES ACADÉMIQUES & DE SCOLARITÉ\n", textBoldFont);
+            Paragraph header = new Paragraph("FACULTÉ DES SCIENCE ET TECHNIQUES\nSERVICES ACADÉMIQUES & DE SCOLARITÉ\n", textBoldFont);
             header.setAlignment(Element.ALIGN_CENTER);
             document.add(header);
 
             document.add(new Paragraph("\n"));
 
-            // Titre du relevé
             Paragraph title = new Paragraph("RELEVÉ DE NOTES SEMESTRIEL", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
@@ -63,7 +59,6 @@ public class DocumentService {
 
             document.add(new Paragraph("\n\n"));
 
-            // Informations de l'étudiant
             Etudiant etudiant = inscription.getEtudiant();
             Utilisateur user = etudiant.getUtilisateur();
 
@@ -80,13 +75,11 @@ public class DocumentService {
 
             document.add(studentTable);
 
-            // Table des notes
             PdfPTable table = new PdfPTable(9);
             table.setWidthPercentage(100);
             table.setWidths(new float[]{3.0f, 3.0f, 1.2f, 1.0f, 1.0f, 1.0f, 1.0f, 1.2f, 1.2f});
             table.setSpacingBefore(10);
 
-            // En-têtes de colonnes
             String[] headers = {"Module", "Matière", "Crédits", "Coeff", "CC", "TP", "Exam", "Générale", "Décision"};
             for (String h : headers) {
                 PdfPCell cell = new PdfPCell(new Phrase(h, headerFont));
@@ -96,49 +89,47 @@ public class DocumentService {
                 table.addCell(cell);
             }
 
-            // Charger les modules et matières de la filière de l'étudiant
             List<Module> modules;
-            if (inscription.getEtudiant().getFiliereActuelle() != null) {
-                modules = moduleRepository.findBySemestreIdAndFiliereId(inscription.getSemestre().getId(), inscription.getEtudiant().getFiliereActuelle().getId());
+            if (etudiant.getFiliereActuelle() != null && inscription.getSemestre().getCode().substring(0, 2).equals(etudiant.getNiveau())) {
+                modules = moduleRepository.findBySemestreIdAndFiliereId(inscription.getSemestre().getId(), etudiant.getFiliereActuelle().getId());
             } else {
                 modules = moduleRepository.findBySemestreId(inscription.getSemestre().getId());
             }
+
             for (Module m : modules) {
-                boolean firstRow = true;
                 List<Matiere> matieres = m.getMatieres();
-                
+                if (matieres.isEmpty()) continue;
+
+                boolean firstRow = true;
                 for (Matiere mat : matieres) {
-                    // Module (fusionner si possible ou répéter)
+
                     if (firstRow) {
-                        PdfPCell mCell = new PdfPCell(new Phrase(m.getNom(), textBoldFont));
+                        PdfPCell mCell = new PdfPCell(new Phrase(m.getCode() + " - " + m.getNom(), textBoldFont));
                         mCell.setRowspan(matieres.size());
                         mCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                        mCell.setPadding(5);
                         table.addCell(mCell);
                         firstRow = false;
                     }
 
-                    // Matière
                     table.addCell(new Phrase(mat.getNom(), textFont));
-
-                    // Crédit, Coeff
                     table.addCell(createCell(String.valueOf(mat.getCredits()), textFont, true));
                     table.addCell(createCell(String.valueOf(mat.getCoefficient()), textFont, true));
 
-                    // Notes
                     Optional<Note> noteOpt = noteRepository.findByInscriptionIdAndMatiereId(inscription.getId(), mat.getId());
                     if (noteOpt.isPresent()) {
                         Note note = noteOpt.get();
-                        table.addCell(createCell(note.getNoteCC() != null ? String.valueOf(note.getNoteCC()) : "-", textFont, true));
-                        table.addCell(createCell(note.getNoteTP() != null ? String.valueOf(note.getNoteTP()) : "-", textFont, true));
-                        table.addCell(createCell(note.getNoteExamen() != null ? String.valueOf(note.getNoteExamen()) : "-", textFont, true));
-                        table.addCell(createCell(note.getNoteGenerale() != null ? String.valueOf(note.getNoteGenerale()) : "-", textBoldFont, true));
+                        table.addCell(createCell(note.getNoteCC() != null ? String.format("%.2f", note.getNoteCC()) : "-", textFont, true));
+                        table.addCell(createCell(note.getNoteTP() != null ? String.format("%.2f", note.getNoteTP()) : "-", textFont, true));
+                        table.addCell(createCell(note.getNoteExamen() != null ? String.format("%.2f", note.getNoteExamen()) : "-", textFont, true));
+                        table.addCell(createCell(note.getNoteGenerale() != null ? String.format("%.2f", note.getNoteGenerale()) : "-", textBoldFont, true));
                         table.addCell(createCell(note.isValidee() ? "Validé" : "Non Val.", textFont, true));
                     } else {
                         table.addCell(createCell("-", textFont, true));
                         table.addCell(createCell("-", textFont, true));
                         table.addCell(createCell("-", textFont, true));
                         table.addCell(createCell("-", textFont, true));
-                        table.addCell(createCell("N/A", textFont, true));
+                        table.addCell(createCell("Non Val.", textFont, true));
                     }
                 }
             }
@@ -147,21 +138,20 @@ public class DocumentService {
 
             document.add(new Paragraph("\n"));
 
-            // Synthèse
             Paragraph synthese = new Paragraph();
             synthese.setFont(textFont);
             synthese.add(new Chunk("Moyenne Semestrielle : ", textBoldFont));
-            synthese.add(new Chunk(inscription.getMoyenneSemestre() != null ? String.valueOf(inscription.getMoyenneSemestre()) + " / 20" : "N/A"));
+            synthese.add(new Chunk(inscription.getMoyenneSemestre() != null ? String.format("%.2f", inscription.getMoyenneSemestre()) + " / 20" : "N/A"));
             synthese.add(new Chunk("\nCrédits ECTS obtenus : ", textBoldFont));
-            synthese.add(new Chunk(inscription.getCreditsObtenus() != null ? String.valueOf(inscription.getCreditsObtenus()) + " / 30" : "0 / 30"));
+            synthese.add(new Chunk(inscription.getCreditsObtenus() != null ? inscription.getCreditsObtenus() + " / 30" : "0 / 30"));
             synthese.add(new Chunk("\nDécision : ", textBoldFont));
             synthese.add(new Chunk(inscription.isValide() ? "SEMESTRE VALIDÉ" : "SEMESTRE NON VALIDÉ", textBoldFont));
+
             MentionAcademique mention = evaluationService.calculerMention(inscription.getMoyenneSemestre());
             synthese.add(new Chunk("\nMention : ", textBoldFont));
             synthese.add(new Chunk(mention.getLibelle(), textBoldFont));
             document.add(synthese);
 
-            // Signature
             Paragraph signature = new Paragraph("\n\nLe Recteur / Le Chef de Scolarité\n(Signature et Cachet)", textBoldFont);
             signature.setAlignment(Element.ALIGN_RIGHT);
             document.add(signature);
@@ -191,13 +181,11 @@ public class DocumentService {
         return cell;
     }
 
-    // --- EXPORTS EXCEL ---
 
     public byte[] exporterEtudiantsExcel(List<Etudiant> etudiants) {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Étudiants");
 
-            // Style d'en-tête
             CellStyle headerStyle = workbook.createCellStyle();
             headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
             headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -206,7 +194,6 @@ public class DocumentService {
             headerFont.setColor(IndexedColors.WHITE.getIndex());
             headerStyle.setFont(headerFont);
 
-            // Ligne d'en-tête
             Row headerRow = sheet.createRow(0);
             String[] columns = {"Matricule", "Nom", "Prénom", "E-mail", "Date Naissance", "Téléphone", "Niveau", "Filière"};
             for (int i = 0; i < columns.length; i++) {
@@ -215,7 +202,6 @@ public class DocumentService {
                 cell.setCellStyle(headerStyle);
             }
 
-            // Remplir les données
             int rowIdx = 1;
             for (Etudiant et : etudiants) {
                 Row row = sheet.createRow(rowIdx++);
@@ -229,7 +215,6 @@ public class DocumentService {
                 row.createCell(7).setCellValue(et.getFiliereActuelle() != null ? et.getFiliereActuelle().getCode() : "Non orienté");
             }
 
-            // Redimensionner les colonnes
             for (int i = 0; i < columns.length; i++) {
                 sheet.autoSizeColumn(i);
             }

@@ -6,15 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -83,7 +75,7 @@ public class EtudiantController {
     private final DocumentService documentService;
     private final JournalService journalService;
 
-    // --- PROFIL ETUDIANT ---
+
 
     @GetMapping("/profil")
     public String profil(Authentication auth, Model model) {
@@ -92,26 +84,56 @@ public class EtudiantController {
         return "etudiant/profil";
     }
 
-    // --- NOTES ET MOYENNES ---
+
 
     @GetMapping("/notes")
     public String voirNotes(Authentication auth, Model model) {
         Etudiant et = etudiantRepository.findByUtilisateurUsername(auth.getName()).orElseThrow();
         List<Inscription> inscriptions = inscriptionRepository.findByEtudiantId(et.getId());
-        
-        // Recalculer les résultats pour chaque semestre (pour s'assurer que moyenneSemestre et creditsObtenus sont à jour)
+
         for (Inscription ins : inscriptions) {
             evaluationService.calculerResultatsInscription(ins.getId());
         }
-        
-        // Regrouper les notes par inscription puis par module
+
         Map<Inscription, Map<Module, List<Note>>> notesParInscription = new LinkedHashMap<>();
+
         for (Inscription ins : inscriptions) {
             Map<Module, List<Note>> parModule = new LinkedHashMap<>();
-            List<Note> notes = noteRepository.findByInscriptionId(ins.getId());
-            for (Note note : notes) {
-                Module mod = note.getMatiere().getModule();
-                parModule.computeIfAbsent(mod, k -> new ArrayList<>()).add(note);
+
+            List<Module> modules;
+
+            if (ins.getSemestre() != null && et.getFiliereActuelle() != null &&
+                    ins.getSemestre().getCode().substring(0,2).equals(et.getNiveau())) {
+                modules = moduleRepository.findBySemestreIdAndFiliereId(ins.getSemestre().getId(), et.getFiliereActuelle().getId());
+            } else {
+                // For past semesters (e.g. L1 classes when the student is now L2), look up by Semestre base ID directly
+                modules = moduleRepository.findBySemestreId(ins.getSemestre().getId());
+            }
+
+            for (Module mod : modules) {
+                List<Note> notesDuModule = new ArrayList<>();
+
+                for (Matiere mat : mod.getMatieres()) {
+                    Optional<Note> noteOpt = noteRepository.findByInscriptionIdAndMatiereId(ins.getId(), mat.getId());
+
+                    if (noteOpt.isPresent()) {
+                        notesDuModule.add(noteOpt.get());
+                    } else {
+                        // Safe UI placeholder mapping loop step
+                        Note placeholder = Note.builder()
+                                .inscription(ins)
+                                .matiere(mat)
+                                .noteCC(null)
+                                .noteExamen(null)
+                                .noteTP(null)
+                                .noteRattrapage(null)
+                                .noteGenerale(null)
+                                .validee(false)
+                                .build();
+                        notesDuModule.add(placeholder);
+                    }
+                }
+                parModule.put(mod, notesDuModule);
             }
             notesParInscription.put(ins, parModule);
         }
@@ -135,7 +157,6 @@ public class EtudiantController {
     public ResponseEntity<byte[]> telechargerNotesPDF(@PathVariable Long inscriptionId, Authentication auth) {
         Inscription ins = inscriptionRepository.findById(inscriptionId).orElseThrow();
         
-        // Sécurité : l'étudiant ne peut télécharger que ses propres notes
         if (!ins.getEtudiant().getUtilisateur().getUsername().equals(auth.getName())) {
             return ResponseEntity.status(403).build();
         }
@@ -152,7 +173,6 @@ public class EtudiantController {
     public ResponseEntity<byte[]> telechargerPDF(@PathVariable Long inscriptionId, Authentication auth) {
         Inscription ins = inscriptionRepository.findById(inscriptionId).orElseThrow();
         
-        // Sécurité : l'étudiant ne peut télécharger que son propre relevé
         if (!ins.getEtudiant().getUtilisateur().getUsername().equals(auth.getName())) {
             return ResponseEntity.status(403).build();
         }
@@ -165,15 +185,12 @@ public class EtudiantController {
                 .body(pdfBytes);
     }
 
-    // --- RECLAMATIONS ---
 
     @GetMapping("/reclamations")
     public String mesReclamations(Authentication auth, Model model) {
         Etudiant et = etudiantRepository.findByUtilisateurUsername(auth.getName()).orElseThrow();
         List<Reclamation> reclamations = reclamationRepository.findByEtudiantIdOrderByDateCreationDesc(et.getId());
-        
-        // Charger les matières disponibles pour le dépôt d'une nouvelle réclamation
-        // (les matières des inscriptions de l'étudiant)
+
         List<Inscription> inscriptions = inscriptionRepository.findByEtudiantId(et.getId());
         List<Matiere> matieres = new ArrayList<>();
         for (Inscription ins : inscriptions) {
@@ -211,7 +228,6 @@ public class EtudiantController {
                 .statut(StatutReclamation.EN_ATTENTE)
                 .build();
 
-        // Gestion du fichier joint
         MultipartFile file = dto.getPieceJointe();
         if (file != null && !file.isEmpty()) {
             try {
@@ -242,10 +258,12 @@ public class EtudiantController {
         if (!ins.getEtudiant().getUtilisateur().getUsername().equals(auth.getName())) {
             return "redirect:/etudiant/notes";
         }
+
         evaluationService.calculerResultatsInscription(inscriptionId);
 
         List<Module> modules;
-        if (ins.getEtudiant().getFiliereActuelle() != null) {
+        if (ins.getEtudiant().getFiliereActuelle() != null &&
+                ins.getSemestre().getCode().substring(0, 2).equals(ins.getEtudiant().getNiveau())) {
             modules = moduleRepository.findBySemestreIdAndFiliereId(
                     ins.getSemestre().getId(), ins.getEtudiant().getFiliereActuelle().getId());
         } else {
@@ -254,29 +272,44 @@ public class EtudiantController {
 
         model.addAttribute("inscription", ins);
         model.addAttribute("modules", modules);
-        model.addAttribute("notesMap", buildNotesMap(inscriptionId, modules));
+        model.addAttribute("notesMap", buildNotesMapWithPlaceholders(ins, modules));
         model.addAttribute("mention", evaluationService.calculerMention(ins.getMoyenneSemestre()));
+
         return "releve_print";
     }
 
-    private Map<Long, Note> buildNotesMap(Long inscriptionId, List<Module> modules) {
+    private Map<Long, Note> buildNotesMapWithPlaceholders(Inscription ins, List<Module> modules) {
         Map<Long, Note> notesMap = new HashMap<>();
+
         for (Module mod : modules) {
             for (Matiere mat : mod.getMatieres()) {
-                noteRepository.findByInscriptionIdAndMatiereId(inscriptionId, mat.getId())
-                        .ifPresent(n -> notesMap.put(mat.getId(), n));
+                Optional<Note> noteOpt = noteRepository.findByInscriptionIdAndMatiereId(ins.getId(), mat.getId());
+
+                if (noteOpt.isPresent()) {
+                    notesMap.put(mat.getId(), noteOpt.get());
+                } else {
+                    Note placeholder = Note.builder()
+                            .inscription(ins)
+                            .matiere(mat)
+                            .noteCC(null)
+                            .noteExamen(null)
+                            .noteTP(null)
+                            .noteRattrapage(null)
+                            .noteGenerale(null)
+                            .validee(false)
+                            .build();
+                    notesMap.put(mat.getId(), placeholder);
+                }
             }
         }
         return notesMap;
     }
 
-    // --- FORMULATION DES VOEUX D'ORIENTATION ---
 
     @GetMapping("/choix")
     public String pageChoix(Authentication auth, Model model) {
         Etudiant et = etudiantRepository.findByUtilisateurUsername(auth.getName()).orElseThrow();
         
-        // L'orientation n'est possible que pour les étudiants de L1
         if (!"L1".equals(et.getNiveau())) {
             model.addAttribute("nonL1", true);
             return "etudiant/choix";
@@ -286,10 +319,8 @@ public class EtudiantController {
 
         AnneeUniversitaire annee = anneeUniversitaireRepository.findByCouranteTrue().orElseThrow();
         
-        // Récupérer les choix existants
         List<ChoixFiliere> choixExistants = choixFiliereRepository.findByEtudiantIdAndAnneeUniversitaireIdOrderByOrdrePreferenceAsc(et.getId(), annee.getId());
         
-        // Charger uniquement les filières de L2/L3 (pas MPI/BG/PC)
         List<Filiere> filieresL2 = filiereRepository.findAll().stream()
                 .filter(f -> !f.getCode().equals("MPI") && !f.getCode().equals("BG") && !f.getCode().equals("PC"))
                 .toList();
@@ -305,7 +336,6 @@ public class EtudiantController {
                               @RequestParam Long choix3, @RequestParam Long choix4,
                               Authentication auth, RedirectAttributes redirect) {
         
-        // Valider l'unicité des choix
         Set<Long> uniques = new HashSet<>(Arrays.asList(choix1, choix2, choix3, choix4));
         if (uniques.size() < 4) {
             redirect.addFlashAttribute("error", "Vous devez choisir 4 filieres distinctes !");
@@ -315,11 +345,9 @@ public class EtudiantController {
         Etudiant et = etudiantRepository.findByUtilisateurUsername(auth.getName()).orElseThrow();
         AnneeUniversitaire annee = anneeUniversitaireRepository.findByCouranteTrue().orElseThrow();
 
-        // Supprimer les anciens choix
         List<ChoixFiliere> anciens = choixFiliereRepository.findByEtudiantIdAndAnneeUniversitaireIdOrderByOrdrePreferenceAsc(et.getId(), annee.getId());
         choixFiliereRepository.deleteAll(anciens);
 
-        // Créer les nouveaux choix
         Long[] choixIds = new Long[]{choix1, choix2, choix3, choix4};
         for (int i = 0; i < 4; i++) {
             Filiere f = filiereRepository.findById(choixIds[i]).orElseThrow();
@@ -338,7 +366,6 @@ public class EtudiantController {
         return "redirect:/etudiant/choix";
     }
 
-    // --- NOTIFICATIONS ---
 
     @GetMapping("/notifications/marquer-lue/{id}")
     public String marquerLue(@PathVariable Long id, Authentication auth) {

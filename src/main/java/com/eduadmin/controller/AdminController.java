@@ -123,7 +123,6 @@ public class AdminController {
         return "redirect:/admin/utilisateurs";
     }
 
-    // --- GESTION ETUDIANTS ---
 
     @GetMapping("/etudiants")
     public String listeEtudiants(@RequestParam(required = false) String nom,
@@ -200,7 +199,7 @@ public class AdminController {
                     .orElseThrow(() -> new IllegalStateException("Aucune annee universitaire active"));
 
             if (dto.getId() == null) {
-                // Créer l'utilisateur
+
                 Utilisateur user = Utilisateur.builder()
                         .username(dto.getMatricule())
                         .password(passwordEncoder.encode(dto.getMatricule()))
@@ -228,7 +227,7 @@ public class AdminController {
 
                 etudiantRepository.save(et);
                 
-                // Inscrire aux semestres selon le niveau
+
                 inscrireEtudiantNiveau(et, annee);
                 
                 journalService.log(auth.getName(), "CREATION_ETUDIANT", "Etudiant cree avec le matricule: " + et.getMatricule());
@@ -311,7 +310,6 @@ public class AdminController {
                 .body(bytes);
     }
 
-    // --- GESTION FILIERES ---
 
     @GetMapping("/filieres")
     public String listeFilieres(Model model) {
@@ -352,7 +350,6 @@ public class AdminController {
         return "redirect:/admin/filieres";
     }
 
-    // --- GESTION MODULES & MATIERES ---
 
     @GetMapping("/modules")
     public String listeModulesEtMatieres(Model model) {
@@ -480,7 +477,7 @@ public class AdminController {
         }
     }
 
-    // --- REGLES ACADEMIQUES & FORMULES & ORIENTATION ---
+
 
     @GetMapping("/orientation")
     public String pageOrientation(Model model) {
@@ -514,7 +511,6 @@ public class AdminController {
         return "redirect:/admin/orientation";
     }
 
-    // --- AUDIT LOGS ---
 
     @GetMapping("/journal")
     public String voirJournal(Model model) {

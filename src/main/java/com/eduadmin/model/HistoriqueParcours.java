@@ -29,11 +29,11 @@ public class HistoriqueParcours {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "filiere_id")
-    private Filiere filiere; // Null en L1 avant l'orientation
+    private Filiere filiere;
 
     @Column(name = "moyenne_annuelle")
-    private Double moyenneAnnuelle; // Moyenne de l'année (moyenne des 2 semestres)
+    private Double moyenneAnnuelle;
 
     @Column(nullable = false)
-    private boolean valide = false; // Indique si l'année est validée (moyenne >= 10)
+    private boolean valide = false;
 }

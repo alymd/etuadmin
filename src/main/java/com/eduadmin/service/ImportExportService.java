@@ -57,7 +57,6 @@ public class ImportExportService {
 
                 if (nom.isEmpty() || prenom.isEmpty() || email.isEmpty()) continue;
 
-                // Génération de matricule automatique si absent
                 if (matricule.isEmpty()) {
                     matricule = genererMatriculeUnique();
                 }
@@ -66,7 +65,6 @@ public class ImportExportService {
                     matricule = "C" + matricule;
                 }
 
-                // Vérifier si l'étudiant existe déjà
                 Optional<Etudiant> etOpt = etudiantRepository.findByMatricule(matricule);
                 Etudiant etudiant;
                 
@@ -76,10 +74,9 @@ public class ImportExportService {
                     etudiant.setAdresse(adresse);
                     etudiant.setNiveau(niveau);
                 } else {
-                    // Création de l'utilisateur associé
                     Utilisateur user = Utilisateur.builder()
                             .username(matricule)
-                            .password(passwordEncoder.encode(matricule)) // username = password = matricule haché
+                            .password(passwordEncoder.encode(matricule))
                             .nom(nom)
                             .prenom(prenom)
                             .email(email)
@@ -89,8 +86,7 @@ public class ImportExportService {
 
                     user = utilisateurRepository.save(user);
 
-                    // Date de naissance
-                    LocalDate dateNaissance = LocalDate.now().minusYears(20); // Valeur par défaut
+                    LocalDate dateNaissance = LocalDate.now().minusYears(20);
                     if (!dateNaissanceStr.isEmpty()) {
                         try {
                             if (row.getCell(4).getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(row.getCell(4))) {
@@ -113,7 +109,6 @@ public class ImportExportService {
                             .build();
                 }
 
-                // Affecter la filière
                 if (!filiereCode.isEmpty()) {
                     Optional<Filiere> filiereOpt = filiereRepository.findByCode(filiereCode);
                     filiereOpt.ifPresent(etudiant::setFiliereActuelle);
@@ -121,7 +116,7 @@ public class ImportExportService {
 
                 etudiantRepository.save(etudiant);
 
-                // Inscrire automatiquement l'étudiant aux semestres correspondants à son niveau
+
                 inscrireEtudiantNiveau(etudiant, annee);
 
                 count++;
@@ -159,10 +154,8 @@ public class ImportExportService {
                     Etudiant et = etOpt.get();
                     Matiere mat = matOpt.get();
 
-                    // Trouver le semestre correspondant au module de la matière
                     Semestre semestre = mat.getModule().getSemestre();
 
-                    // Trouver ou créer l'inscription correspondante pour le semestre
                     Inscription ins = inscriptionRepository.findByEtudiantIdAndSemestreId(et.getId(), semestre.getId())
                             .orElseGet(() -> {
                                 Inscription newIns = Inscription.builder()
@@ -174,7 +167,6 @@ public class ImportExportService {
                                 return inscriptionRepository.save(newIns);
                             });
 
-                    // Trouver ou créer la note
                     Note note = noteRepository.findByInscriptionIdAndMatiereId(ins.getId(), mat.getId())
                             .orElseGet(() -> Note.builder()
                                     .inscription(ins)

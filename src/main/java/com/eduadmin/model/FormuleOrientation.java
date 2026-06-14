@@ -21,5 +21,5 @@ public class FormuleOrientation {
     private Filiere filiere;
 
     @Column(nullable = false, length = 255)
-    private String formule; // Ex: (MO1S1 + MO1S2 + 2*MO2S1 + 2*MO2S2 + MGS1 + MGS2) / 8
+    private String formule;
 }

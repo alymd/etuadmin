@@ -27,19 +27,19 @@ public class Note {
     private Matiere matiere;
 
     @Column(name = "note_cc")
-    private Double noteCC; // Note Contrôle Continu
+    private Double noteCC;
 
     @Column(name = "note_tp")
-    private Double noteTP; // Note Travaux Pratiques
+    private Double noteTP;
 
     @Column(name = "note_examen")
-    private Double noteExamen; // Note Examen final
+    private Double noteExamen;
 
     @Column(name = "note_rattrapage")
-    private Double noteRattrapage; // Note de Rattrapage
+    private Double noteRattrapage;
 
     @Column(name = "note_generale")
-    private Double noteGenerale; // Note Générale calculée
+    private Double noteGenerale;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "session_examen", nullable = false, length = 30)
@@ -47,9 +47,8 @@ public class Note {
     private SessionExamen sessionExamen = SessionExamen.NORMAL;
 
     @Column(nullable = false)
-    private boolean validee = false; // Indique si la matière est validée
+    private boolean validee = false;
 
-    // Calcule la note générale en fonction des règles
     public void recalculerNoteGenerale() {
         if (noteCC == null && noteExamen == null && noteTP == null && noteRattrapage == null) {
             this.noteGenerale = null;
@@ -60,7 +59,6 @@ public class Note {
         double cc = this.noteCC != null ? this.noteCC : 0.0;
         double exam = this.noteExamen != null ? this.noteExamen : 0.0;
         
-        // Gérer le rattrapage : s'il existe et est supérieur à la note d'examen, on l'utilise
         if (this.noteRattrapage != null && this.noteRattrapage > exam) {
             exam = this.noteRattrapage;
             this.sessionExamen = SessionExamen.RATTRAPAGE;
@@ -73,8 +71,6 @@ public class Note {
             this.noteGenerale = Math.round(((2 * cc + 3 * exam) / 5.0) * 100.0) / 100.0;
         }
 
-        // Par défaut, la matière est validée si noteGenerale >= 10
-        // (La compensation se fait au niveau du module)
         this.validee = this.noteGenerale != null && this.noteGenerale >= 10.0;
     }
 }

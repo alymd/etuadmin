@@ -17,19 +17,19 @@ public class Matiere {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 30)
-    private String code; // Ex: INF101
+    private String code;
 
     @Column(nullable = false, length = 150)
-    private String nom; // Ex: Algorithmique en Java
+    private String nom;
 
     @Column(nullable = false)
     private double coefficient;
 
     @Column(nullable = false)
-    private int credits; // Crédits ECTS
+    private int credits;
 
     @Column(nullable = false)
-    private boolean presenceTP; // true si la matière possède des TP, false sinon
+    private boolean presenceTP;
 
     @Column(length = 500)
     private String description;

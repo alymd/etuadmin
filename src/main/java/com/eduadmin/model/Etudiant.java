@@ -22,7 +22,7 @@ public class Etudiant {
     private Utilisateur utilisateur;
 
     @Column(unique = true, nullable = false, length = 20)
-    private String matricule; // Doit commencer par C
+    private String matricule;
 
     @Column(nullable = false)
     private LocalDate dateNaissance;
@@ -35,7 +35,7 @@ public class Etudiant {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "filiere_actuelle_id")
-    private Filiere filiereActuelle; // Nullable en L1 avant l'orientation
+    private Filiere filiereActuelle;
 
     @Column(nullable = false, length = 10)
     private String niveau; // L1, L2, L3

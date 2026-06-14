@@ -41,7 +41,7 @@ public class EtudiantFormDto {
     private String adresse;
 
     @NotBlank(message = "Le niveau est obligatoire")
-    private String niveau; // L1, L2, L3
+    private String niveau; // L1  L2 L3
 
-    private Long filiereId; // Optionnel en L1
+    private Long filiereId;
 }

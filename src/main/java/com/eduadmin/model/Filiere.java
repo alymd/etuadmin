@@ -16,11 +16,11 @@ public class Filiere {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 30)
-    private String code; // Ex: MIAGE, DA2I, MPI
+    private String code;
 
     @Column(nullable = false, length = 150)
-    private String nom; // Ex: Methodes Informatiques Appliquees a la Gestion des Entreprises
+    private String nom;
 
     @Column(nullable = false)
-    private int capaciteMax; // Capacité maximale pour l'affectation automatique
+    private int capaciteMax;
 }
