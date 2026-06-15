@@ -28,8 +28,8 @@
                             </select>
                         </div>
                         <div class="col-md-6 form-group-custom">
-                            <label for="noteConcernee">Note concernée</label>
-                            <input id="noteConcernee" type="text" name="noteConcernee" class="form-control-custom" placeholder="Ex: CC, Exam" required>
+                            <label for="noteConcernee">Note concernée (sur 20)</label>
+                            <input id="noteConcernee" type="number" name="noteConcernee" class="form-control-custom" placeholder="Ex: 8.5" min="0" max="20" step="0.25" required>
                         </div>
                         <div class="col-12 form-group-custom">
                             <label for="objet">Objet</label>
@@ -53,25 +53,25 @@
                 <div class="table-custom-wrapper">
                     <table class="table-custom">
                         <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Matière</th>
-                                <th>Objet</th>
-                                <th>Statut</th>
-                                <th>Détails</th>
-                            </tr>
+                        <tr>
+                            <th>Date</th>
+                            <th>Matière</th>
+                            <th>Objet</th>
+                            <th>Statut</th>
+                            <th>Détails</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="rec : ${reclamations}">
-                                <td th:text="${#temporals.format(rec.dateCreation, 'dd/MM/yyyy')}">Date</td>
-                                <td th:text="${rec.matiere.code} + ' - ' + ${rec.matiere.nom}">Matière</td>
-                                <td th:text="${rec.objet}">Objet</td>
-                                <td th:text="${rec.statut}">Statut</td>
-                                <td th:text="${rec.description}">Description</td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(reclamations)}">
-                                <td colspan="5" class="text-center text-muted py-3">Aucune réclamation déposée pour le moment.</td>
-                            </tr>
+                        <tr th:each="rec : ${reclamations}">
+                            <td th:text="${#temporals.format(rec.dateCreation, 'dd/MM/yyyy')}">Date</td>
+                            <td th:text="${rec.matiere.code} + ' - ' + ${rec.matiere.nom}">Matière</td>
+                            <td th:text="${rec.objet}">Objet</td>
+                            <td th:text="${rec.statut}">Statut</td>
+                            <td th:text="${rec.description}">Description</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(reclamations)}">
+                            <td colspan="5" class="text-center text-muted py-3">Aucune réclamation déposée pour le moment.</td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>

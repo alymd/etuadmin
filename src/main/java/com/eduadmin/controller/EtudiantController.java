@@ -34,7 +34,9 @@ import com.eduadmin.model.Matiere;
 import com.eduadmin.model.MentionAcademique;
 import com.eduadmin.model.Module;
 import com.eduadmin.model.Note;
+import com.eduadmin.model.Notification;
 import com.eduadmin.model.Reclamation;
+import com.eduadmin.model.Role;
 import com.eduadmin.model.StatutReclamation;
 import com.eduadmin.repository.AnneeUniversitaireRepository;
 import com.eduadmin.repository.ChoixFiliereRepository;
@@ -46,6 +48,7 @@ import com.eduadmin.repository.ModuleRepository;
 import com.eduadmin.repository.NoteRepository;
 import com.eduadmin.repository.NotificationRepository;
 import com.eduadmin.repository.ReclamationRepository;
+import com.eduadmin.repository.UtilisateurRepository;
 import com.eduadmin.service.DocumentService;
 import com.eduadmin.service.EvaluationService;
 import com.eduadmin.service.JournalService;
@@ -70,7 +73,8 @@ public class EtudiantController {
     private final ModuleRepository moduleRepository;
     private final NotificationRepository notificationRepository;
     private final AnneeUniversitaireRepository anneeUniversitaireRepository;
-    
+    private final UtilisateurRepository utilisateurRepository;
+
     private final EvaluationService evaluationService;
     private final DocumentService documentService;
     private final JournalService journalService;
@@ -81,6 +85,7 @@ public class EtudiantController {
     public String profil(Authentication auth, Model model) {
         Etudiant et = etudiantRepository.findByUtilisateurUsername(auth.getName()).orElseThrow();
         model.addAttribute("etudiant", et);
+        model.addAttribute("username", auth.getName());
         return "etudiant/profil";
     }
 
@@ -149,6 +154,7 @@ public class EtudiantController {
             mentionsParInscription.put(ins, evaluationService.calculerMention(ins.getMoyenneSemestre()));
         }
         model.addAttribute("mentionsParInscription", mentionsParInscription);
+        model.addAttribute("username", auth.getName());
 
         return "etudiant/notes";
     }
@@ -156,7 +162,7 @@ public class EtudiantController {
     @GetMapping("/notes/pdf/{inscriptionId}")
     public ResponseEntity<byte[]> telechargerNotesPDF(@PathVariable Long inscriptionId, Authentication auth) {
         Inscription ins = inscriptionRepository.findById(inscriptionId).orElseThrow();
-        
+
         if (!ins.getEtudiant().getUtilisateur().getUsername().equals(auth.getName())) {
             return ResponseEntity.status(403).build();
         }
@@ -172,7 +178,7 @@ public class EtudiantController {
     @GetMapping("/releves/pdf/{inscriptionId}")
     public ResponseEntity<byte[]> telechargerPDF(@PathVariable Long inscriptionId, Authentication auth) {
         Inscription ins = inscriptionRepository.findById(inscriptionId).orElseThrow();
-        
+
         if (!ins.getEtudiant().getUtilisateur().getUsername().equals(auth.getName())) {
             return ResponseEntity.status(403).build();
         }
@@ -203,6 +209,7 @@ public class EtudiantController {
         model.addAttribute("reclamations", reclamations);
         model.addAttribute("matieres", matieres);
         model.addAttribute("reclamationForm", new ReclamationDto());
+        model.addAttribute("username", auth.getName());
         return "etudiant/reclamations";
     }
 
@@ -210,7 +217,7 @@ public class EtudiantController {
     public String sauverReclamation(@Valid @ModelAttribute("reclamationForm") ReclamationDto dto,
                                     BindingResult result, Authentication auth, RedirectAttributes redirect) {
         Etudiant et = etudiantRepository.findByUtilisateurUsername(auth.getName()).orElseThrow();
-        
+
         if (result.hasErrors()) {
             redirect.addFlashAttribute("error", "Veuillez remplir correctement tous les champs de la reclamation");
             return "redirect:/etudiant/reclamations";
@@ -246,9 +253,23 @@ public class EtudiantController {
         }
 
         reclamationRepository.save(rec);
+
+        // Notify all scolarite staff about the new reclamation
+        utilisateurRepository.findByRole(Role.ROLE_SCOLARITE).forEach(scolariteUser -> {
+            Notification notif = Notification.builder()
+                    .destinataire(scolariteUser)
+                    .titre("Nouvelle réclamation")
+                    .message("L'étudiant " + et.getUtilisateur().getPrenom() + " " + et.getUtilisateur().getNom()
+                            + " a déposé une réclamation pour la matière " + mat.getNom() + ".")
+                    .dateCreation(LocalDateTime.now())
+                    .lue(false)
+                    .build();
+            notificationRepository.save(notif);
+        });
+
         journalService.log(auth.getName(), "RECLAMATION_DEPOSEE", "Reclamation deposee pour la matiere " + mat.getCode());
         redirect.addFlashAttribute("success", "Votre reclamation a ete deposee avec succes !");
-        
+
         return "redirect:/etudiant/reclamations";
     }
 
@@ -309,7 +330,7 @@ public class EtudiantController {
     @GetMapping("/choix")
     public String pageChoix(Authentication auth, Model model) {
         Etudiant et = etudiantRepository.findByUtilisateurUsername(auth.getName()).orElseThrow();
-        
+
         if (!"L1".equals(et.getNiveau())) {
             model.addAttribute("nonL1", true);
             return "etudiant/choix";
@@ -318,16 +339,17 @@ public class EtudiantController {
         model.addAttribute("nonL1", false);
 
         AnneeUniversitaire annee = anneeUniversitaireRepository.findByCouranteTrue().orElseThrow();
-        
+
         List<ChoixFiliere> choixExistants = choixFiliereRepository.findByEtudiantIdAndAnneeUniversitaireIdOrderByOrdrePreferenceAsc(et.getId(), annee.getId());
-        
+
         List<Filiere> filieresL2 = filiereRepository.findAll().stream()
                 .filter(f -> !f.getCode().equals("MPI") && !f.getCode().equals("BG") && !f.getCode().equals("PC"))
                 .toList();
 
         model.addAttribute("filieres", filieresL2);
         model.addAttribute("choixExistants", choixExistants);
-        
+        model.addAttribute("username", auth.getName());
+
         return "etudiant/choix";
     }
 
@@ -335,7 +357,7 @@ public class EtudiantController {
     public String sauverChoix(@RequestParam Long choix1, @RequestParam Long choix2,
                               @RequestParam Long choix3, @RequestParam Long choix4,
                               Authentication auth, RedirectAttributes redirect) {
-        
+
         Set<Long> uniques = new HashSet<>(Arrays.asList(choix1, choix2, choix3, choix4));
         if (uniques.size() < 4) {
             redirect.addFlashAttribute("error", "Vous devez choisir 4 filieres distinctes !");
@@ -362,7 +384,7 @@ public class EtudiantController {
 
         journalService.log(auth.getName(), "CHOIX_FILIERES_SAUVE", "Formulation de 4 voeux d'orientation enregistree.");
         redirect.addFlashAttribute("success", "Vos voeux d'orientation ont ete enregistres !");
-        
+
         return "redirect:/etudiant/choix";
     }
 

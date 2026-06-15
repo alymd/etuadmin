@@ -69,7 +69,7 @@ public class AdminController {
     private final SemestreRepository semestreRepository;
     private final InscriptionRepository inscriptionRepository;
     private final AffectationFiliereRepository affectationFiliereRepository;
-    
+
     private final UtilisateurService utilisateurService;
     private final EtudiantService etudiantService;
     private final OrientationService orientationService;
@@ -81,15 +81,16 @@ public class AdminController {
     // --- GESTION UTILISATEURS ---
 
     @GetMapping("/utilisateurs")
-    public String listeUtilisateurs(Model model) {
+    public String listeUtilisateurs(Authentication auth, Model model) {
         model.addAttribute("utilisateurs", utilisateurRepository.findAll());
         model.addAttribute("nouveauUser", new Utilisateur());
         model.addAttribute("roles", Role.values());
+        model.addAttribute("username", auth.getName());
         return "admin/utilisateurs";
     }
 
     @PostMapping("/utilisateurs/sauver")
-    public String sauverUtilisateur(@ModelAttribute("nouveauUser") Utilisateur user, 
+    public String sauverUtilisateur(@ModelAttribute("nouveauUser") Utilisateur user,
                                     Authentication auth, RedirectAttributes redirect) {
         try {
             if (user.getId() == null) {
@@ -117,8 +118,8 @@ public class AdminController {
         Utilisateur user = utilisateurRepository.findById(id).orElseThrow();
         user.setActif(!user.isActif());
         utilisateurRepository.save(user);
-        journalService.log(auth.getName(), "TOGGLE_UTILISATEUR", 
-            "Utilisateur " + user.getUsername() + " mis a " + (user.isActif() ? "ACTIF" : "INACTIF"));
+        journalService.log(auth.getName(), "TOGGLE_UTILISATEUR",
+                "Utilisateur " + user.getUsername() + " mis a " + (user.isActif() ? "ACTIF" : "INACTIF"));
         redirect.addFlashAttribute("success", "Statut utilisateur mis a jour !");
         return "redirect:/admin/utilisateurs";
     }
@@ -130,7 +131,7 @@ public class AdminController {
                                  @RequestParam(required = false) Long filiereId,
                                  @RequestParam(required = false) String niveau,
                                  @RequestParam(required = false) Long anneeId,
-                                 Model model) {
+                                 Authentication auth, Model model) {
         model.addAttribute("etudiants", etudiantService.rechercher(nom, matricule, filiereId, niveau, anneeId));
         model.addAttribute("filieres", filiereRepository.findAll());
         model.addAttribute("annees", anneeUniversitaireRepository.findAll());
@@ -139,6 +140,7 @@ public class AdminController {
         model.addAttribute("filiereId", filiereId);
         model.addAttribute("niveau", niveau);
         model.addAttribute("anneeId", anneeId);
+        model.addAttribute("username", auth.getName());
         return "admin/etudiants";
     }
 
@@ -156,15 +158,16 @@ public class AdminController {
     }
 
     @GetMapping("/etudiants/nouveau")
-    public String nouveauEtudiantForm(Model model) {
+    public String nouveauEtudiantForm(Authentication auth, Model model) {
         model.addAttribute("etudiantForm", new EtudiantFormDto());
         model.addAttribute("filieres", filiereRepository.findAll());
         model.addAttribute("niveaux", new String[]{"L1", "L2", "L3"});
+        model.addAttribute("username", auth.getName());
         return "admin/etudiant_form";
     }
 
     @GetMapping("/etudiants/modifier/{id}")
-    public String modifierEtudiantForm(@PathVariable Long id, Model model) {
+    public String modifierEtudiantForm(@PathVariable Long id, Authentication auth, Model model) {
         Etudiant et = etudiantRepository.findById(id).orElseThrow();
         EtudiantFormDto dto = EtudiantFormDto.builder()
                 .id(et.getId())
@@ -182,11 +185,12 @@ public class AdminController {
         model.addAttribute("etudiantForm", dto);
         model.addAttribute("filieres", filiereRepository.findAll());
         model.addAttribute("niveaux", new String[]{"L1", "L2", "L3"});
+        model.addAttribute("username", auth.getName());
         return "admin/etudiant_form";
     }
 
     @PostMapping("/etudiants/sauver")
-    public String sauverEtudiant(@Valid @ModelAttribute("etudiantForm") EtudiantFormDto dto, 
+    public String sauverEtudiant(@Valid @ModelAttribute("etudiantForm") EtudiantFormDto dto,
                                  BindingResult result, Authentication auth, Model model, RedirectAttributes redirect) {
         if (result.hasErrors()) {
             model.addAttribute("filieres", filiereRepository.findAll());
@@ -226,15 +230,15 @@ public class AdminController {
                 }
 
                 etudiantRepository.save(et);
-                
+
 
                 inscrireEtudiantNiveau(et, annee);
-                
+
                 journalService.log(auth.getName(), "CREATION_ETUDIANT", "Etudiant cree avec le matricule: " + et.getMatricule());
             } else {
                 Etudiant et = etudiantRepository.findById(dto.getId()).orElseThrow();
                 Utilisateur user = et.getUtilisateur();
-                
+
                 user.setNom(dto.getNom());
                 user.setPrenom(dto.getPrenom());
                 user.setEmail(dto.getEmail());
@@ -253,7 +257,7 @@ public class AdminController {
 
                 etudiantRepository.save(et);
                 inscrireEtudiantNiveau(et, annee);
-                
+
                 journalService.log(auth.getName(), "MODIFICATION_ETUDIANT", "Etudiant modifie: " + et.getMatricule());
             }
             redirect.addFlashAttribute("success", "Etudiant enregistre avec succes !");
@@ -312,9 +316,10 @@ public class AdminController {
 
 
     @GetMapping("/filieres")
-    public String listeFilieres(Model model) {
+    public String listeFilieres(Authentication auth, Model model) {
         model.addAttribute("filieres", filiereRepository.findAll());
         model.addAttribute("nouvelleFiliere", new Filiere());
+        model.addAttribute("username", auth.getName());
         return "admin/filieres";
     }
 
@@ -352,20 +357,19 @@ public class AdminController {
 
 
     @GetMapping("/modules")
-    public String listeModulesEtMatieres(Model model) {
+    public String listeModulesEtMatieres(Authentication auth, Model model) {
         model.addAttribute("modules", moduleRepository.findAll());
         model.addAttribute("matieres", matiereRepository.findAll());
         model.addAttribute("semestres", semestreRepository.findAll());
         model.addAttribute("filieres", filiereRepository.findAll());
-        
         model.addAttribute("nouveauModule", new Module());
         model.addAttribute("nouvelleMatiere", new Matiere());
-        
+        model.addAttribute("username", auth.getName());
         return "admin/modules";
     }
 
     @PostMapping("/modules/sauver")
-    public String sauverModule(@ModelAttribute("nouveauModule") Module mod, 
+    public String sauverModule(@ModelAttribute("nouveauModule") Module mod,
                                @RequestParam("semestre") Long semestreId,
                                @RequestParam(value = "filiere", required = false) Long filiereId,
                                Authentication auth, RedirectAttributes redirect) {
@@ -419,7 +423,7 @@ public class AdminController {
     }
 
     @PostMapping("/matieres/sauver")
-    public String sauverMatiere(@ModelAttribute("nouvelleMatiere") Matiere mat, 
+    public String sauverMatiere(@ModelAttribute("nouvelleMatiere") Matiere mat,
                                 @RequestParam("module") Long moduleId,
                                 Authentication auth, RedirectAttributes redirect) {
         try {
@@ -480,11 +484,12 @@ public class AdminController {
 
 
     @GetMapping("/orientation")
-    public String pageOrientation(Model model) {
+    public String pageOrientation(Authentication auth, Model model) {
         model.addAttribute("formules", formuleOrientationRepository.findAll());
         model.addAttribute("filieres", filiereRepository.findAll());
         model.addAttribute("affectations", affectationFiliereRepository.findAll());
         model.addAttribute("l1Count", etudiantRepository.findByNiveau("L1").size());
+        model.addAttribute("username", auth.getName());
         return "admin/orientation";
     }
 
@@ -513,8 +518,9 @@ public class AdminController {
 
 
     @GetMapping("/journal")
-    public String voirJournal(Model model) {
+    public String voirJournal(Authentication auth, Model model) {
         model.addAttribute("logs", journalService.getToutesActivites());
+        model.addAttribute("username", auth.getName());
         return "admin/journal";
     }
 }

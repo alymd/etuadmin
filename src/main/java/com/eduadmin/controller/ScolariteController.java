@@ -45,7 +45,7 @@ public class ScolariteController {
                                  @RequestParam(required = false) Long filiereId,
                                  @RequestParam(required = false) String niveau,
                                  @RequestParam(required = false) Long anneeId,
-                                 Model model) {
+                                 Authentication auth, Model model) {
         model.addAttribute("etudiants", etudiantService.rechercher(nom, matricule, filiereId, niveau, anneeId));
         model.addAttribute("filieres", filiereRepository.findAll());
         model.addAttribute("annees", anneeUniversitaireRepository.findAll());
@@ -54,6 +54,7 @@ public class ScolariteController {
         model.addAttribute("filiereId", filiereId);
         model.addAttribute("niveau", niveau);
         model.addAttribute("anneeId", anneeId);
+        model.addAttribute("username", auth.getName());
         return "scolarite/etudiants";
     }
 
@@ -62,7 +63,7 @@ public class ScolariteController {
     public String consultationNotes(@RequestParam(required = false) Long semestreId,
                                     @RequestParam(required = false) Long moduleId,
                                     @RequestParam(required = false) Long matiereId,
-                                    Model model) {
+                                    Authentication auth, Model model) {
         model.addAttribute("semestres", semestreRepository.findAll());
         model.addAttribute("semestreIdSelected", semestreId);
         model.addAttribute("moduleIdSelected", moduleId);
@@ -99,6 +100,7 @@ public class ScolariteController {
             model.addAttribute("notesEtudiants", notesEtudiants);
         }
 
+        model.addAttribute("username", auth.getName());
         return "scolarite/notes";
     }
 
@@ -162,7 +164,7 @@ public class ScolariteController {
 
 
     @GetMapping("/inscriptions")
-    public String pageInscriptions(@RequestParam(required = false) Long anneeId, Model model) {
+    public String pageInscriptions(@RequestParam(required = false) Long anneeId, Authentication auth, Model model) {
         model.addAttribute("etudiants", etudiantRepository.findAll());
         model.addAttribute("semestres", semestreRepository.findAll());
         model.addAttribute("annees", anneeUniversitaireRepository.findAll());
@@ -172,6 +174,7 @@ public class ScolariteController {
         } else {
             model.addAttribute("inscriptions", inscriptionRepository.findAll());
         }
+        model.addAttribute("username", auth.getName());
         return "scolarite/inscriptions";
     }
 
@@ -221,8 +224,9 @@ public class ScolariteController {
 
 
     @GetMapping("/reclamations")
-    public String listeReclamations(Model model) {
+    public String listeReclamations(Authentication auth, Model model) {
         model.addAttribute("reclamations", reclamationRepository.findAll());
+        model.addAttribute("username", auth.getName());
         return "scolarite/reclamations";
     }
 
@@ -259,7 +263,7 @@ public class ScolariteController {
     @GetMapping("/releves")
     public String pageReleves(@RequestParam(required = false) String niveau,
                               @RequestParam(required = false) Long anneeId,
-                              Model model) {
+                              Authentication auth, Model model) {
         List<Inscription> inscriptions = inscriptionRepository.findAll();
         if (anneeId != null) {
             inscriptions = inscriptionRepository.findByAnneeUniversitaireId(anneeId);
@@ -273,6 +277,7 @@ public class ScolariteController {
         model.addAttribute("annees", anneeUniversitaireRepository.findAll());
         model.addAttribute("niveau", niveau);
         model.addAttribute("anneeId", anneeId);
+        model.addAttribute("username", auth.getName());
         return "scolarite/releves";
     }
 
@@ -338,7 +343,7 @@ public class ScolariteController {
 
 
     @GetMapping("/statistiques")
-    public String pageStatistiques(@RequestParam(required = false) String niveau, Model model) {
+    public String pageStatistiques(@RequestParam(required = false) String niveau, Authentication auth, Model model) {
         List<Etudiant> etudiants = niveau != null && !niveau.isBlank()
                 ? etudiantRepository.findByNiveau(niveau)
                 : etudiantRepository.findAll();
@@ -373,6 +378,7 @@ public class ScolariteController {
         model.addAttribute("l2Count", etudiantRepository.findByNiveau("L2").size());
         model.addAttribute("l3Count", etudiantRepository.findByNiveau("L3").size());
         model.addAttribute("niveau", niveau);
+        model.addAttribute("username", auth.getName());
         return "scolarite/statistiques";
     }
 }

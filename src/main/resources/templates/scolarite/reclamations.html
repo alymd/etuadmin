@@ -15,54 +15,55 @@
                 <div class="table-custom-wrapper">
                     <table class="table-custom">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Étudiant</th>
-                                <th>Matière</th>
-                                <th>Objet</th>
-                                <th>Statut</th>
-                                <th>Action</th>
-                            </tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Étudiant</th>
+                            <th>Matière</th>
+                            <th>Objet</th>
+                            <th>Statut</th>
+                            <th>Action</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="rec : ${reclamations}">
-                                <td th:text="${rec.id}">1</td>
-                                <td th:text="${rec.etudiant.utilisateur.prenom} + ' ' + ${rec.etudiant.utilisateur.nom}">Prénom Nom</td>
-                                <td th:text="${rec.matiere.code} + ' - ' + ${rec.matiere.nom}">Matière</td>
-                                <td th:text="${rec.objet}">Objet</td>
-                                <td th:text="${rec.statut}">Statut</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" th:data-bs-target="${'#reclamation-' + rec.id}" aria-expanded="false" aria-controls="reclamation">Voir</button>
-                                </td>
-                            </tr>
-                            <tr th:each="rec : ${reclamations}" th:id="${'reclamation-' + rec.id}" class="collapse">
-                                <td colspan="6">
-                                    <div class="p-3 bg-light rounded">
-                                        <p><strong>Description :</strong> <span th:text="${rec.description}">Description</span></p>
-                                        <p><strong>Commentaire admin :</strong> <span th:text="${rec.commentaireAdmin != null ? rec.commentaireAdmin : 'Aucun'}">Commentaire</span></p>
-                                        <form th:action="@{/scolarite/reclamations/traiter/{id}(id=${rec.id})}" method="post" class="row g-3">
-                                            <div class="col-md-4 form-group-custom">
-                                                <label for="statut-" th:for="${'statut-' + rec.id}">Statut</label>
-                                                <select th:id="${'statut-' + rec.id}" name="statut" class="form-control-custom">
-                                                    <option value="EN_ATTENTE" th:selected="${rec.statut == 'EN_ATTENTE'}">EN_ATTENTE</option>
-                                                    <option value="TRAITEE" th:selected="${rec.statut == 'TRAITEE'}">TRAITEE</option>
-                                                    <option value="REJETE" th:selected="${rec.statut == 'REJETE'}">REJETE</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6 form-group-custom">
-                                                <label th:for="${'commentaire-' + rec.id}">Commentaire admin</label>
-                                                <input th:id="${'commentaire-' + rec.id}" type="text" name="commentaireAdmin" class="form-control-custom" placeholder="Commentaire">
-                                            </div>
-                                            <div class="col-md-2 d-flex align-items-end">
-                                                <button type="submit" class="btn btn-primary-custom w-100">Mettre à jour</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(reclamations)}">
-                                <td colspan="6" class="text-center text-muted py-3">Aucune réclamation enregistrée.</td>
-                            </tr>
+                        <tr th:each="rec : ${reclamations}">
+                            <td th:text="${rec.id}">1</td>
+                            <td th:text="${rec.etudiant.utilisateur.prenom} + ' ' + ${rec.etudiant.utilisateur.nom}">Prénom Nom</td>
+                            <td th:text="${rec.matiere.code} + ' - ' + ${rec.matiere.nom}">Matière</td>
+                            <td th:text="${rec.objet}">Objet</td>
+                            <td th:text="${rec.statut}">Statut</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" th:data-bs-target="${'#reclamation-' + rec.id}" aria-expanded="false" aria-controls="reclamation">Voir</button>
+                            </td>
+                        </tr>
+                        <tr th:each="rec : ${reclamations}" th:id="${'reclamation-' + rec.id}" class="collapse">
+                            <td colspan="6">
+                                <div class="p-3 bg-light rounded">
+                                    <p><strong>Description :</strong> <span th:text="${rec.description}">Description</span></p>
+                                    <p><strong>Commentaire admin :</strong> <span th:text="${rec.commentaireAdmin != null ? rec.commentaireAdmin : 'Aucun'}">Commentaire</span></p>
+                                    <form th:action="@{/scolarite/reclamations/traiter/{id}(id=${rec.id})}" method="post" class="row g-3">
+                                        <div class="col-md-4 form-group-custom">
+                                            <label for="statut-" th:for="${'statut-' + rec.id}">Statut</label>
+                                            <select th:id="${'statut-' + rec.id}" name="statut" class="form-control-custom">
+                                                <option value="EN_ATTENTE" th:selected="${rec.statut.name() == 'EN_ATTENTE'}">En attente</option>
+                                                <option value="EN_COURS" th:selected="${rec.statut.name() == 'EN_COURS'}">En cours</option>
+                                                <option value="ACCEPTEE" th:selected="${rec.statut.name() == 'ACCEPTEE'}">Acceptée</option>
+                                                <option value="REJETEE" th:selected="${rec.statut.name() == 'REJETEE'}">Rejetée</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 form-group-custom">
+                                            <label th:for="${'commentaire-' + rec.id}">Commentaire admin</label>
+                                            <input th:id="${'commentaire-' + rec.id}" type="text" name="commentaireAdmin" class="form-control-custom" placeholder="Commentaire">
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary-custom w-100">Mettre à jour</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(reclamations)}">
+                            <td colspan="6" class="text-center text-muted py-3">Aucune réclamation enregistrée.</td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>
